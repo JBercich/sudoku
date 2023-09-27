@@ -1,0 +1,18 @@
+# pyproject.toml
+#   Configuration for poetry project management and any additional utility configs that
+#   are compatible with this management system.
+
+[tool.poetry]
+name = "sudoku"
+version = "0.1.0"
+description = "WIP: Sudoku solver formula implementation and analysis"
+authors = ["JBercich <joshbercich@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+numpy = "^1.26.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

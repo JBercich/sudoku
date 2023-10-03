@@ -5,7 +5,7 @@ import time
 from copy import deepcopy
 
 
-from sudoku.sudoku.board import SudokuBoard
+from sudoku.sudoku.board.board import SudokuBoard
 from sudoku.sudoku.solver.solver import SudokuSolver
 
 
@@ -100,12 +100,12 @@ class SudokuSolverV1(SudokuSolver):
         return SudokuSolverV1.recursive_solve(0, board, static_indexes)
 
 
-board = SudokuBoard(
-    "310450900072986143906010508639178020150090806004003700005731009701829350000645010"
-)
+# board = SudokuBoard(
+#     "310450900072986143906010508639178020150090806004003700005731009701829350000645010"
+# )
 
-out = SudokuSolverV1.solve(board)
-sol = (
-    "318457962572986143946312578639178425157294836284563791425731689761829354893645217"
-)
-print("".join([str(i) for i in out]) == sol)
+# out = SudokuSolverV1.solve(board)
+# sol = (
+#     "318457962572986143946312578639178425157294836284563791425731689761829354893645217"
+# )
+# print("".join([str(i) for i in out]) == sol)

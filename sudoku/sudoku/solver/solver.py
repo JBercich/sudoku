@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractclassmethod, abstractproperty
 
 from sudoku.sudoku.board import SudokuBoard
 
@@ -14,6 +14,14 @@ class SudokuSolver(ABC):
     portability of solving algorithms with the different appropriate boards. Each class
     only needs to implement the `solve()` algorithm to be usable.
     """
+
+    @abstractproperty
+    def NAME(self) -> str:
+        pass
+
+    @abstractproperty
+    def DESC(self) -> str:
+        pass
 
     @abstractclassmethod
     def solve(cls, board: SudokuBoard) -> SudokuBoard:

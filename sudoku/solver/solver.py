@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
+
+"""Base solver abstract class."""
+
+from abc import ABC, abstractclassmethod
+
+
+class Solver(ABC):
+    @classmethod
+    def a(cls):
+        pass
+
+
 # g = Grid()
 # g[0, 8] = 9
 # print(g)

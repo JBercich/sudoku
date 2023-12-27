@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from typing import TypeAlias, Any
 
 from sudoku.cell import Cell
@@ -17,6 +18,8 @@ class Grid:
 
     ROWS: int = 9
     COLS: int = 9
+    GRID: int = 9
+    GRID_LEN: int = 3
 
     @property
     def grid(self) -> int:
@@ -62,3 +65,29 @@ class Grid:
     def init_empty_grid(cls) -> GridMatrix:
         """Initialise an empty grid of cells set to a value of 0."""
         return [[Cell(value=0) for _ in range(cls.COLS)] for _ in range(cls.ROWS)]
+
+    def validate(self) -> bool:
+        """Validate a grid upholds all rule constraints."""
+
+        # Generate counters for rows, columns and small grids
+        counters: list[Counter] = []
+        for i in range(self.ROWS):
+            counters.append(Counter([cell.value for cell in self.grid[i]]))
+        for i in range(self.COLS):
+            counters.append(Counter([row[i].value for row in self.grid]))
+        for i in range(self.GRID):
+            offset_row: int = (i // self.GRID_LEN) * self.GRID_LEN
+            offset_col: int = (i % self.GRID_LEN) * self.GRID_LEN
+            indicies: list[int] = [
+                (row + offset_row, col + offset_col)
+                for row in range(self.GRID_LEN)
+                for col in range(self.GRID_LEN)
+            ]
+            counters.append(Counter([self[ind].value for ind in indicies]))
+
+        # Check if any counter breaches the constraints
+        for counter in counters:
+            for value, count in counter.items():
+                if value != 0 and count > 1:
+                    return False
+        return True

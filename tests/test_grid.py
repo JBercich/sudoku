@@ -76,3 +76,40 @@ class TestGrid:
         grid[0, 0] = 1
         assert grid[0, 0].value == 1
         assert grid[0, 0]._set_count == 1
+
+    def test_validate_row_constraint(self):
+        """Grids validated with invalid rows return False."""
+
+        # Construct an invalid grid
+        grid: Grid = Grid()
+        grid[0, 0] = 1
+        assert grid.validate()
+        grid[0, 1] = 1
+        assert not grid.validate()
+
+    def test_validate_col_constraint(self):
+        """Grids validated with invalid columns return False."""
+
+        # Construct an invalid grid
+        grid: Grid = Grid()
+        grid[0, 0] = 1
+        assert grid.validate()
+        grid[1, 0] = 1
+        assert not grid.validate()
+
+    def test_validate_grid_constraint(self):
+        """Grids validated with invalid smaller grids return False."""
+
+        # Construct an invalid grid
+        grid: Grid = Grid()
+        grid[0, 0] = 1
+        assert grid.validate()
+        grid[1, 1] = 1
+        assert not grid.validate()
+
+    def test_validate(self):
+        """Grids validated without breaching constraints return True."""
+
+        # Construct a valid grid
+        grid: Grid = Grid()
+        assert grid.validate()

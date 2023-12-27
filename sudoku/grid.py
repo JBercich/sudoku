@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 from typing import TypeAlias, Any
 
@@ -91,3 +92,30 @@ class Grid:
                 if value != 0 and count > 1:
                     return False
         return True
+
+    @classmethod
+    def load_string(cls, grid_string: str, post_validate: bool = True) -> Grid:
+        """Load in a sudoku grid from a string of cell values."""
+
+        # Validate the grid string
+        if re.fullmatch(r"[0-9].{0,81}", grid_string) is None:
+            raise ValueError(f"Invalid grid string format: {grid_string}")
+
+        # Create a new board and load each value
+        grid: Grid = Grid()
+        index: int = 0
+        for row in range(cls.ROWS):
+            for col in range(cls.COLS):
+                grid[row, col] = int(grid_string[index])
+                index += 1
+
+        # Validate the loaded string
+        if post_validate and not grid.validate():
+            raise ValueError(f"Loaded sudoku board is not valid: {grid_string}")
+
+        # Reset cell counters
+        for row in range(cls.ROWS):
+            for col in range(cls.COLS):
+                grid[row, col].reset_counters()
+
+        return grid

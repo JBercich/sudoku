@@ -113,3 +113,24 @@ class TestGrid:
         # Construct a valid grid
         grid: Grid = Grid()
         assert grid.validate()
+
+    def test_load_invalid_string(self):
+        """Loading an invalid string raises ValueError."""
+
+        # Create and attempt to load an invalid grid
+        invalid_grid: str = "1" * Grid.COLS * Grid.ROWS
+        invalid_grid_message: str = rf"Loaded sudoku board is not valid: {invalid_grid}"
+        with pytest.raises(ValueError, match=invalid_grid_message):
+            Grid.load_string(invalid_grid)
+
+    def test_load_valid_string(self):
+        """Valid sudoku board strings are loaded, with all 0 counter cells."""
+
+        # Create a valid grid and check cell counters
+        valid_grid: str = "0" * Grid.COLS * Grid.ROWS
+        grid: Grid = Grid.load_string(valid_grid)
+        for row in grid.grid:
+            for col in row:
+                assert col._get_count == 0
+                assert col._set_count == 0
+        assert grid.validate()

@@ -3,22 +3,28 @@
 
 """Base solver abstract class."""
 
+import time
 from abc import ABC, abstractclassmethod
+
+from sudoku.grid import Grid
 
 
 class Solver(ABC):
+    """Base solver abstract class."""
+
     @classmethod
-    def a(cls):
-        pass
+    def solve(cls, grid: Grid, **solver_params) -> Grid:
+        """Generic solve function for sudoku grids."""
 
+        # Perform generic solve, add time profiling
+        start_process_time: float = time.process_time()
+        cls._solve(grid, **solver_params)
+        end_process_time: float = time.process_time()
+        elapsed_process_time: float = end_process_time - start_process_time
+        return grid, elapsed_process_time
 
-# g = Grid()
-# g[0, 8] = 9
-# print(g)
-# print(g._get_count)
-# for i in range(9):
-#     for j in range(9):
-#         print((i, j), g[i, j].value)
+    @abstractclassmethod
+    def _solve(cls, grid: Grid, **params) -> Grid:
+        """Abstract method to overload for solving a grid in child class solvers."""
 
-# #         if re.fullmatch(r"[0-9].{0,81}", grid) is None:
-# #         "070000043040009610800634900094052000358460020000800530080070091902100005007040802"
+        return grid

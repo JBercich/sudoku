@@ -18,6 +18,7 @@ class TestCell:
         assert cell._get_count == 0
         assert cell._set_count == 0
         assert cell.value == 0
+        assert not cell.static
 
     @pytest.mark.parametrize("value", [-1, -0.5, -0.1, 9.1, 9.5, 10])
     def test_cell_value_is_out_of_range(self, value: Any):
@@ -83,3 +84,11 @@ class TestCell:
         cell.reset_counters()
         assert cell._get_count == 0
         assert cell._set_count == 0
+
+    def test_set_static_cell(self):
+        """Cell that is static cannot be updated."""
+
+        cell: Cell = Cell(value=0, static=True)
+        assert cell.value == 0
+        cell.value = 1
+        assert cell.value == 0

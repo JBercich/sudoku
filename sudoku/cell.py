@@ -12,7 +12,11 @@ from dataclasses import dataclass, field
 class Cell:
     """Sudoku board cell."""
 
+    _MIN: int = 0
+    _MAX: int = 9
+
     value: int
+    static: bool = False
     _get_count: int = field(default=0, repr=False)
     _set_count: int = field(default=0, repr=False)
 
@@ -22,10 +26,12 @@ class Cell:
         return self._value
 
     @value.setter
-    def value(self, value: int) -> None:
+    def value(self, value: int):
         """Custom value setter for upholding value constraints (le=9,ge=0)."""
-        if value < 0 or value > 9:
+        if value < self._MIN or value > self._MAX:
             raise ValueError(f"Invalid cell value: {value}")
+        if self.static:
+            return
         self._set_count += 1
         self._value: int = value
 

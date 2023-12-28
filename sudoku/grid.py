@@ -62,6 +62,28 @@ class Grid:
         """Custom representation dunder method for stdout."""
         return self.__str__()
 
+    def get_row(self, row: int) -> list[Cell]:
+        """Getter for a row of cells."""
+        return self.grid[row]
+
+    def get_col(self, col: int) -> list[Cell]:
+        """Getter for a column of cells."""
+        return [row[col] for row in self.grid]
+
+    def get_grid(self, row: int, col: int) -> list[Cell]:
+        """Getter for a sub-grid of cells."""
+        return [
+            self[row, col]
+            for row, col in [
+                (
+                    r + (row // Grid.GRID_LEN) * Grid.GRID_LEN,
+                    c + (col // Grid.GRID_LEN) * Grid.GRID_LEN,
+                )
+                for r in range(Grid.GRID_LEN)
+                for c in range(Grid.GRID_LEN)
+            ]
+        ]
+
     @classmethod
     def init_empty_grid(cls) -> GridMatrix:
         """Initialise an empty grid of cells set to a value of 0."""
@@ -89,7 +111,7 @@ class Grid:
         # Check if any counter breaches the constraints
         for counter in counters:
             for value, count in counter.items():
-                if value != 0 and count > 1:
+                if value != Cell._MIN and count > Cell._MIN + 1:
                     return False
         return True
 
@@ -107,6 +129,8 @@ class Grid:
         for row in range(cls.ROWS):
             for col in range(cls.COLS):
                 grid[row, col] = int(grid_string[index])
+                if int(grid_string[index]) != Cell._MIN:
+                    grid[row, col].static = True
                 index += 1
 
         # Validate the loaded string
@@ -118,4 +142,11 @@ class Grid:
             for col in range(cls.COLS):
                 grid[row, col].reset_counters()
 
+        return grid
+
+    def dump_string(self) -> str:
+        """Dump the grid as a single string sequence of cell values."""
+        grid: str = ""
+        for row in self.grid:
+            grid += "".join([str(cell.value) for cell in row])
         return grid

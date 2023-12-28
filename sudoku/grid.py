@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from typing import TypeAlias, Any
+from typing import Any, TypeAlias
 
 from sudoku.cell import Cell
 

@@ -5,11 +5,34 @@ description = ""
 authors = ["JBercich <joshbercich@gmail.com>"]
 readme = "README.md"
 
-[tool.poetry.dependencies]
-python = "^3.11"
-pytest = "^7.4.3"
+# Main dependencies
 
+[tool.poetry.dependencies]
+python = "^3.11" # Requires below 3.12 for `poetry`
+
+
+# Development dependencies
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"     # Main testing framework for source validation
+pdoc3 = "^0.10.0"     # Documentation generation
+pre-commit = "^3.6.0" # Development quality assurance
+
+# Build system using poetry
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+# Dependency configurations
+
+[tool.flake8]
+max-line-length = 89 # Allow longer line lengths than pep8
+ignore = ["F401"]    # Allow module imports from __init__
+
+[tool.interrogate]
+fail-under = 90      # Requires 90% docstring coverage
+ignore-module = true # Module-level docstrings not required
+
+[tool.isort]
+profile = "black" # Import sorts align with `black` formatting

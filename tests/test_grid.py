@@ -3,8 +3,8 @@
 
 import pytest
 
-from sudoku.grid import Grid
 from sudoku.cell import Cell
+from sudoku.grid import Grid
 
 
 class TestGrid:

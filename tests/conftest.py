@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-
 EXAMPLE_TEST_FILE: Path = Path(__file__).parent / "examples.csv"
 
 

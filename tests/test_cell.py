@@ -5,20 +5,20 @@ from typing import Any
 
 import pytest
 
-from sudoku.cell import Cell
+from sudoku.cell import DEFAULT_CELL_MAXIMUM, DEFAULT_CELL_MINIMUM, Cell
 
 
 class TestCell:
-    def test_cell_is_valid(self):
-        """Default cell dataclass assignment correctly initialises and instance."""
-
-        # Cell instantiation and default value setting should be expected
-        cell: Cell = Cell(value=0)
+    def test_default_initialisation(self):
+        """Default initialisation correctly sets default values."""
+        cell: Cell = Cell()
         assert cell is not None
-        assert cell._get_count == 0
-        assert cell._set_count == 0
-        assert cell.value == 0
+        assert cell._getter_counter == 0
+        assert cell._setter_counter == 0
+        assert cell.value == Cell.EMPTY_VALUE
         assert not cell.static
+        assert cell.minimum_value == DEFAULT_CELL_MINIMUM
+        assert cell.maximum_value == DEFAULT_CELL_MAXIMUM
 
     @pytest.mark.parametrize("value", [-1, -0.5, -0.1, 9.1, 9.5, 10])
     def test_cell_value_is_out_of_range(self, value: Any):

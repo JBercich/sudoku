@@ -4,192 +4,102 @@
 import pytest
 
 from sudoku.cell import Cell
-from sudoku.grid import Grid
+from sudoku.grid import DEFAULT_GRID_SIZE, Grid
 
 
 class TestGrid:
     def test_default_initialisation(self):
         """Grid initialisation with defaults creates an empty grid."""
-        pass
-
-    def test_grid_frozen(self):
-        """Grid attribute is frozen and the setter raises NotImplementedError."""
-        pass
+        grid: Grid = Grid()
+        assert grid._getter_counter == 0
+        assert grid._grid_size == DEFAULT_GRID_SIZE
+        assert all([cell.is_empty() for cell in grid])
 
     def test_iter_dunder_method(self):
         """Iter dunder method holds logic for the grid field."""
-        pass
+        grid: Grid = Grid()
+        for cell in grid:
+            assert isinstance(cell, Cell)
+            assert cell.is_empty()
+            assert not cell.static
+        assert len([i for i in grid]) == grid.get_grid_size() ** 2
 
     def test_getitem_dunder_method(self):
         """Get item dunder method holds logic for the grid field."""
-        pass
+        grid: Grid = Grid()
+        assert isinstance(grid[0, 0], Cell)
+        with pytest.raises(IndexError):
+            _ = grid[grid.get_grid_size(), 0]
+        with pytest.raises(TypeError):
+            _ = grid[0]
+        with pytest.raises(TypeError):
+            _ = grid[0, 0, 0]
 
     def test_setitem_dunder_method(self):
         """Set item dunder method holds logic for the grid field."""
-        pass
+        grid: Grid = Grid()
+        grid[0, 0] = grid.get_grid_size()
+        assert grid[0, 0].value == grid.get_grid_size()
+        with pytest.raises(IndexError):
+            grid[grid.get_grid_size(), 0] = grid.get_grid_size()
+        with pytest.raises(TypeError):
+            grid[0] = grid.get_grid_size()
+        with pytest.raises(TypeError):
+            grid[0, 0, 0] = grid.get_grid_size()
 
     def test_get_grid_size(self):
         """Getting the grid size returns the provided default or parameter value."""
-        pass
+        grid: Grid = Grid(size=4)
+        assert grid.get_grid_size() == 4
 
     def test_get_subgrid_size(self):
         """Getting the subgrid size returns the provided default or parameter value."""
-        pass
+        grid: Grid = Grid(size=4)
+        assert grid.get_subgrid_size() == 2
 
     def test_get_row(self):
         """Getting a grid row returns the expected size and values."""
-        pass
+        grid: Grid = Grid(size=4)
+        assert len(grid.get_row(0)) == grid.get_grid_size()
 
     def test_get_column(self):
         """Getting a grid column returns the expected size and values."""
-        pass
+        grid: Grid = Grid(size=4)
+        assert len(grid.get_column(0)) == grid.get_grid_size()
 
     def test_get_subgrid(self):
         """Getting a grid subgrid returns the expected size and values."""
-        pass
+        grid: Grid = Grid(size=4)
+        assert len(grid.get_subgrid(0, 0)) == grid.get_grid_size()
 
     def test_valid_init_empty_grid(self):
         """Initialising an empty grid with a valid size creates correct grid cells."""
-        pass
+        grid: Grid = Grid._init_empty_grid(size=4)
+        assert all([cell.is_empty() for row in grid for cell in row])
 
     def test_validate(self):
         """Grid validation should capture incomplete or constrain breaching grids."""
-        pass
-
-    def test_load_string(self):
-        """Loading a string should set values correctly and set them as static."""
-        pass
-
-    def test_dump_string(self):
-        """Dumping a string should have the correct length and values."""
-        pass
-
-
-@pytest.mark.skip("Refactoring")
-class TestGrid2:
-    def test_grid_is_valid(self):
-        """Default grid initialises correctly with defaults."""
-
-        # Validate starting count and cell values
         grid: Grid = Grid()
-        assert grid._get_count == 0
-        for row in grid.grid:
-            for col in row:
-                assert col.value == 0
-
-    def test_grid_getter_increments(self):
-        """Grid access should increment the global grid access counter."""
-
-        # Initialise and validate base grid
-        grid: Grid = Grid()
-        assert grid._get_count == 0
-
-        # Increment the grid counter
-        _ = grid.grid
-        assert grid._get_count == 1
-
-    def test_setitem_index_raises(self):
-        """Invalid index access of the grid raises TypeError."""
-
-        # Invalid grid access without a collection-based (row, col) access
-        with pytest.raises(TypeError):
-            Grid()[0]
-        with pytest.raises(TypeError):
-            Grid()["Invalid Access Key"]
-        with pytest.raises(TypeError):
-            Grid()[0, 1, 2]
-        with pytest.raises(IndexError):
-            Grid()[10, 0]
-        with pytest.raises(IndexError):
-            Grid()[0, 10]
-
-    def test_getitem_index_raises(self):
-        """Invalid index access of the grid raises TypeError."""
-
-        # Invalid grid access without a collection-based (row, col) access
-        with pytest.raises(TypeError):
-            Grid()[0] = 0
-        with pytest.raises(TypeError):
-            Grid()["Invalid Access Key"] = 0
-        with pytest.raises(TypeError):
-            Grid()[0, 1, 2] = 0
-        with pytest.raises(IndexError):
-            Grid()[10, 0] = 0
-        with pytest.raises(IndexError):
-            Grid()[0, 10] = 0
-
-    def test_getitem_index_yield_cell(self):
-        """Valid grid index getting will retrieve the cell instance."""
-
-        # Initialise and access a grid cell
-        grid: Grid = Grid()
-        assert isinstance(grid[0, 0], Cell)
-        assert grid[0, 0].value == 0
-
-    def test_setitem_index_yield_cell(self):
-        """Valid grid index access yield a cell instance with a value."""
-
-        # Initialise and set a grid cell and validate an update
-        grid: Grid = Grid()
-        assert grid[0, 0].value == 0
-        grid[0, 0] = 1
-        assert grid[0, 0].value == 1
-        assert grid[0, 0]._set_count == 1
-
-    def test_validate_row_constraint(self):
-        """Grids validated with invalid rows return False."""
-
-        # Construct an invalid grid
-        grid: Grid = Grid()
+        assert grid.validate()
         grid[0, 0] = 1
         assert grid.validate()
         grid[0, 1] = 1
         assert not grid.validate()
-
-    def test_validate_col_constraint(self):
-        """Grids validated with invalid columns return False."""
-
-        # Construct an invalid grid
-        grid: Grid = Grid()
-        grid[0, 0] = 1
-        assert grid.validate()
+        grid[0, 1] = grid[1, 0].value
         grid[1, 0] = 1
         assert not grid.validate()
-
-    def test_validate_grid_constraint(self):
-        """Grids validated with invalid smaller grids return False."""
-
-        # Construct an invalid grid
-        grid: Grid = Grid()
-        grid[0, 0] = 1
-        assert grid.validate()
+        grid[1, 0] = grid[1, 1].value
         grid[1, 1] = 1
         assert not grid.validate()
 
-    def test_validate(self):
-        """Grids validated without breaching constraints return True."""
+    def test_load_string(self):
+        """Loading a string should set values correctly and set them as static."""
+        grid_string: str = "0" * 4
+        grid: Grid = Grid.load_string(grid_string)
+        assert all([cell.is_empty() for cell in grid])
+        assert len([cell for cell in grid]) == grid.get_grid_size() ** 2
 
-        # Construct a valid grid
-        grid: Grid = Grid()
-        assert grid.validate()
-
-    def test_load_invalid_string(self):
-        """Loading an invalid string raises ValueError."""
-
-        # Create and attempt to load an invalid grid
-        invalid_grid: str = "1" * Grid.COLS * Grid.ROWS
-        invalid_grid_message: str = rf"Loaded sudoku board is not valid: {invalid_grid}"
-        with pytest.raises(ValueError, match=invalid_grid_message):
-            Grid.load_string(invalid_grid)
-
-    def test_load_valid_string(self):
-        """Valid sudoku board strings are loaded, with all 0 counter cells."""
-
-        # Create a valid grid and check cell counters
-        valid_grid: str = "0" * Grid.COLS * Grid.ROWS
-        grid: Grid = Grid.load_string(valid_grid)
-        for row in grid.grid:
-            for col in row:
-                assert col._get_count == 0
-                assert col._set_count == 0
-        assert grid.validate()
+    def test_dump_string(self):
+        """Dumping a string should have the correct length and values."""
+        grid: Grid = Grid(size=4)
+        assert grid.dump_string() == "0" * 4**2

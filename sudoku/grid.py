@@ -8,6 +8,7 @@ from __future__ import annotations
 import math
 import re
 from collections import Counter
+from itertools import product
 from typing import Any, Final
 
 from sudoku.cell import Cell
@@ -40,9 +41,8 @@ class Grid:
 
     # grid
     # ----
-    # Overloading the sudoku grid attribute prevents explicit setting of the grid with a
-    # different value. Attribute access is allowed and has an attached counter to track
-    # any extra metrics during a solver method.
+    # Overloading the sudoku grid attribute has an attached counter to track any extra
+    # metrics about grid access during a solver method.
 
     @property
     def grid(self) -> list[list[Cell]]:
@@ -50,8 +50,8 @@ class Grid:
         return self._grid
 
     @grid.setter
-    def grid(self, value: Any) -> None:
-        raise NotImplementedError("Cannot set grid attribute.")
+    def grid(self, grid: Any) -> None:
+        self._grid = grid
 
     # Dunder methods
     # --------------
@@ -64,7 +64,7 @@ class Grid:
         cells: list[Cell] = []
         for row in self.grid:
             cells += row
-        return cells
+        return iter(cells)
 
     def __getitem__(self, index: Any) -> Any:
         """Instance get-item method for (row, column) grid index getting."""
@@ -91,7 +91,7 @@ class Grid:
 
     def get_grid_size(self) -> int:
         """Getter for the full grid size."""
-        return len(self._grid_size)
+        return self._grid_size
 
     def get_subgrid_size(self) -> int:
         """Getter for the subgrid size."""
@@ -110,12 +110,12 @@ class Grid:
         size: int = self.get_subgrid_size()
         row_indicies: list[int] = [r + (row // size) * size for r in range(size)]
         col_indicies: list[int] = [c + (col // size) * size for c in range(size)]
-        return [self[r, c] for r, c in zip(row_indicies, col_indicies)]
+        return [self[r, c] for r, c in product(row_indicies, col_indicies)]
 
     @classmethod
     def _init_empty_grid(cls, size: int) -> list[list[Cell]]:
         """Initialise a grid matrix with all cells set as empty."""
-        return [[Cell() for _ in range(size)] for _ in range(size)]
+        return [[Cell(maximum_value=size) for _ in range(size)] for _ in range(size)]
 
     def validate(self, complete: bool = False) -> bool:
         """Validate a grid upholds all rule constraints (and is complete)."""

@@ -105,6 +105,10 @@ class Cell:
         """Instance string method for value stdout."""
         return str(self.value)
 
+    def __hash__(self) -> int:
+        """Instance hash method for value."""
+        return hash(self.value)
+
     # Helper methods
     # --------------
     # Additional methods are made to extend the readability of internal cell logic.

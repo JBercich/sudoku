@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass, field
-from typing import Final, Iterable
+from typing import Any, Final, Iterable
 
 EMPTY_CELL_VALUE: Final[int] = 0
 DEFAULT_CELL_MINIMUM: Final[int] = 1
@@ -52,7 +52,7 @@ class Cell:
         pass
 
     @value.setter
-    def value(self, value: int) -> None:
+    def value(self, value: Any) -> None:
         if isinstance(value, property):
             value: int = EMPTY_CELL_VALUE
         if not self.value_is_valid(value):

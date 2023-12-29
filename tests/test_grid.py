@@ -7,8 +7,66 @@ from sudoku.cell import Cell
 from sudoku.grid import Grid
 
 
-@pytest.mark.skip("Refactoring")
 class TestGrid:
+    def test_default_initialisation(self):
+        """Grid initialisation with defaults creates an empty grid."""
+        pass
+
+    def test_grid_frozen(self):
+        """Grid attribute is frozen and the setter raises NotImplementedError."""
+        pass
+
+    def test_iter_dunder_method(self):
+        """Iter dunder method holds logic for the grid field."""
+        pass
+
+    def test_getitem_dunder_method(self):
+        """Get item dunder method holds logic for the grid field."""
+        pass
+
+    def test_setitem_dunder_method(self):
+        """Set item dunder method holds logic for the grid field."""
+        pass
+
+    def test_get_grid_size(self):
+        """Getting the grid size returns the provided default or parameter value."""
+        pass
+
+    def test_get_subgrid_size(self):
+        """Getting the subgrid size returns the provided default or parameter value."""
+        pass
+
+    def test_get_row(self):
+        """Getting a grid row returns the expected size and values."""
+        pass
+
+    def test_get_column(self):
+        """Getting a grid column returns the expected size and values."""
+        pass
+
+    def test_get_subgrid(self):
+        """Getting a grid subgrid returns the expected size and values."""
+        pass
+
+    def test_valid_init_empty_grid(self):
+        """Initialising an empty grid with a valid size creates correct grid cells."""
+        pass
+
+    def test_validate(self):
+        """Grid validation should capture incomplete or constrain breaching grids."""
+        pass
+
+    def test_load_string(self):
+        """Loading a string should set values correctly and set them as static."""
+        pass
+
+    def test_dump_string(self):
+        """Dumping a string should have the correct length and values."""
+        pass
+
+
+@pytest.mark.skip("Refactoring")
+class TestGrid2:
     def test_grid_is_valid(self):
         """Default grid initialises correctly with defaults."""
 

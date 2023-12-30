@@ -1,30 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-"""Base solver abstract class."""
+"""Solver abstraction."""
 
-import time
 from abc import ABC, abstractclassmethod
+from typing import Any
 
 from sudoku.grid import Grid
+from sudoku.profiler import Profiler
 
 
 class Solver(ABC):
-    """Base solver abstract class."""
+    """Base abstract solver.
+
+    Single function wrapper for running a solver method. Each solver extends the method
+    used to solve an input grid with aset of parameters. The runtime solver is profiled
+    to extract certain metrics of the algorithm to better showcase how certain methods
+    solve the sudoku board.
+    """
 
     @classmethod
-    def solve(cls, grid: Grid, **solver_params) -> Grid:
-        """Generic solve function for sudoku grids."""
-
-        # Perform generic solve, add time profiling
-        start_process_time: float = time.process_time()
-        cls._solve(grid, **solver_params)
-        end_process_time: float = time.process_time()
-        elapsed_process_time: float = end_process_time - start_process_time
-        return grid, elapsed_process_time
+    def run(cls, grid: Grid, **params) -> None:
+        """Main solver entrypoint function for a sudoku grid solver."""
+        profiler: Profiler = Profiler(grid=grid)
+        profiler.start()
+        cls._solve(grid, **params)
+        profiler.end()
+        return profiler
 
     @abstractclassmethod
-    def _solve(cls, grid: Grid, **params) -> Grid:
-        """Abstract method to overload for solving a grid in child class solvers."""
-
-        return grid
+    def solve(cls, grid: Grid, **params) -> Any:
+        """Abstract method for solving a grid in different solvers."""
+        pass

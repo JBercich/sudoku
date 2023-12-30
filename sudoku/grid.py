@@ -11,7 +11,7 @@ from collections import Counter
 from itertools import product
 from typing import Any, Final
 
-from sudoku.cell import Cell
+from sudoku.cell import DEFAULT_CELL_MINIMUM, Cell
 
 DEFAULT_GRID_SIZE: Final[int] = 9
 MINIMUM_GRID_SIZE: Final[int] = 2
@@ -36,6 +36,8 @@ class Grid:
         if not math.sqrt(size).is_integer():
             raise ValueError("Grid size must have integral root for valid grids.")
         self.grid: list[list[Cell]] = self._init_empty_grid(size)
+        self.max_value: int = size
+        self.min_value: int = DEFAULT_CELL_MINIMUM
         self._grid_size: int = size
         self._getter_counter: int = 0
 
@@ -155,9 +157,8 @@ class Grid:
         # Create a new board and load each value
         grid: Grid = Grid()
         for cell, char in zip(grid, grid_string):
-            is_static: bool = cell.value == int(char)
             cell.value = int(char)
-            cell.static = True if is_static else cell.static
+            cell.static = True if cell.value != 0 else cell.static
 
         # Validate the loaded string
         if post_validate and not grid.validate():

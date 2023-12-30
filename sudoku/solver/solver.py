@@ -24,8 +24,8 @@ class Solver(ABC):
         """Main solver entrypoint function for a sudoku grid solver."""
         profiler: Profiler = Profiler(grid=grid)
         profiler.start()
-        cls._solve(grid, **params)
-        profiler.end()
+        cls.solve(grid, **params)
+        profiler.stop()
         return profiler
 
     @abstractclassmethod

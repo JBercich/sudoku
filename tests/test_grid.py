@@ -3,7 +3,7 @@
 
 import pytest
 
-from sudoku.cell import Cell
+from sudoku.cell import DEFAULT_CELL_MAXIMUM, DEFAULT_CELL_MINIMUM, Cell
 from sudoku.grid import DEFAULT_GRID_SIZE, Grid
 
 
@@ -13,6 +13,8 @@ class TestGrid:
         grid: Grid = Grid()
         assert grid._getter_counter == 0
         assert grid._grid_size == DEFAULT_GRID_SIZE
+        assert grid.max_value == DEFAULT_CELL_MAXIMUM
+        assert grid.min_value == DEFAULT_CELL_MINIMUM
         assert all([cell.is_empty() for cell in grid])
 
     def test_iter_dunder_method(self):

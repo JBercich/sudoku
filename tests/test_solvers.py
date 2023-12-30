@@ -11,7 +11,6 @@ TESTABLE_SOLVERS: list[Solver] = [
 ]
 
 
-@pytest.mark.skip("Refactoring")
 class TestSolvers:
     @pytest.mark.parametrize("solver", TESTABLE_SOLVERS)
     def test_solver_correctness(self, sudoku_tests: list[tuple], solver: Solver):
@@ -20,5 +19,5 @@ class TestSolvers:
         # Iterate through each test for the solver
         for problem, solution in sudoku_tests:
             grid: Grid = Grid.load_string(problem)
-            grid, _ = solver.solve(grid)
+            solver.run(grid)
             assert grid.dump_string() == solution

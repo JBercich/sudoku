@@ -1,123 +1,154 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-"""Sudoku grid class."""
+"""Grid abstraction."""
 
 from __future__ import annotations
 
+import math
 import re
 from collections import Counter
-from typing import TypeAlias, Any
+from itertools import product
+from typing import Any, Final
 
-from sudoku.cell import Cell
+from sudoku.cell import DEFAULT_CELL_MINIMUM, Cell
 
-GridMatrix: TypeAlias = list[list[Cell]]
+DEFAULT_GRID_SIZE: Final[int] = 9
+MINIMUM_GRID_SIZE: Final[int] = 2
+MAXIMUM_GRID_SIZE: Final[int] = 36
 
 
 class Grid:
-    """Sudoku grid."""
+    """Sudoku grid.
 
-    ROWS: int = 9
-    COLS: int = 9
-    GRID: int = 9
-    GRID_LEN: int = 3
+    A grid contains `Cell` instances assorted in a matrix-like data structure composed
+    of list rows. The grid size can be customised with an integral root grid width. Grid
+    helper methods aim to minimise grid complexity by reducing required logical methods.
+
+    Attributes:
+        grid (list[list[Cell]]): Grid matrix data structure composed of Cell instances.
+            Defaults to an empty grid with all cells filled with `EMPTY_CELL_VALUE`.
+    """
+
+    def __init__(self, size: int = DEFAULT_GRID_SIZE):
+        if size < MINIMUM_GRID_SIZE or size > MAXIMUM_GRID_SIZE:
+            raise ValueError(f"Invalid grid size: {size}")
+        if not math.sqrt(size).is_integer():
+            raise ValueError("Grid size must have integral root for valid grids.")
+        self.grid: list[list[Cell]] = self._init_empty_grid(size)
+        self.max_value: int = size
+        self.min_value: int = DEFAULT_CELL_MINIMUM
+        self._grid_size: int = size
+        self._getter_counter: int = 0
+
+    # grid
+    # ----
+    # Overloading the sudoku grid attribute has an attached counter to track any extra
+    # metrics about grid access during a solver method.
 
     @property
-    def grid(self) -> int:
-        """Grid property for overriding getter."""
-        return self._grid
-
-    @grid.getter
-    def grid(self) -> GridMatrix:
-        """Custom value getter to track the total grid accesses made."""
-        self._get_count += 1
+    def grid(self) -> list[list[Cell]]:
+        self._getter_counter += 1
         return self._grid
 
     @grid.setter
-    def grid(self, value: GridMatrix) -> GridMatrix:
-        """Custom value setter for the grid property."""
-        self._grid = value
+    def grid(self, grid: Any) -> None:
+        self._grid = grid
 
-    def __init__(self):
-        self.grid: GridMatrix = self.init_empty_grid()
-        self._get_count: int = 0
+    # Dunder methods
+    # --------------
+    # Builtin dunders are overloaded to simplify cell access by a (row, column) indexing
+    # approach similar to numpy. This will also allow easy iteration over all cells in a
+    # grid without accounting for indexing complexity.
+
+    def __iter__(self):
+        """Instance iteration method for LR-TB enumeration of cells."""
+        cells: list[Cell] = []
+        for row in self.grid:
+            cells += row
+        return iter(cells)
 
     def __getitem__(self, index: Any) -> Any:
-        """Custom index dunder method for easy grid access when getting cell values."""
-        if not (isinstance(index, (list, tuple, set)) and len(index) == 2):
+        """Instance get-item method for (row, column) grid index getting."""
+        if not (isinstance(index, (list, tuple)) and len(index) == 2):
             raise TypeError(f"Grid access with (row, column) indexing: {index}")
         return self.grid[index[0]][index[1]]
 
     def __setitem__(self, index: Any, value: Any) -> Any:
-        """Custom index dunder method for easy grid access when setting cell values."""
-        if not (isinstance(index, (list, tuple, set)) and len(index) == 2):
-            raise TypeError(f"Grid access with (row, column) indexing: {index} {value}")
+        """Instance get-item method for (row, column) grid index setting."""
+        if not (isinstance(index, (list, tuple)) and len(index) == 2):
+            raise TypeError(f"Grid access with (row, column) indexing: {index}")
         self.grid[index[0]][index[1]].value = value
 
     def __str__(self) -> str:
-        """Custom string dunder method for stdout."""
+        """Instance string method for grid stdout."""
         return "\n".join([str(row).strip("[]").replace(",", "") for row in self.grid])
 
-    def __repr__(self) -> str:
-        """Custom representation dunder method for stdout."""
-        return self.__str__()
+    # Helper methods
+    # --------------
+    # Additional helper methods are defined for accessing certain components of the grid
+    # such as subfield ranges like a row or column or subgrid. Initialising an empty
+    # instance an getting the sizes of the grid and subgrid are also defined for the
+    # protected attribute.
+
+    def get_grid_size(self) -> int:
+        """Getter for the full grid size."""
+        return self._grid_size
+
+    def get_subgrid_size(self) -> int:
+        """Getter for the subgrid size."""
+        return int(math.sqrt(self.get_grid_size()))
 
     def get_row(self, row: int) -> list[Cell]:
         """Getter for a row of cells."""
         return self.grid[row]
 
-    def get_col(self, col: int) -> list[Cell]:
+    def get_column(self, col: int) -> list[Cell]:
         """Getter for a column of cells."""
         return [row[col] for row in self.grid]
 
-    def get_grid(self, row: int, col: int) -> list[Cell]:
-        """Getter for a sub-grid of cells."""
-        return [
-            self[row, col]
-            for row, col in [
-                (
-                    r + (row // Grid.GRID_LEN) * Grid.GRID_LEN,
-                    c + (col // Grid.GRID_LEN) * Grid.GRID_LEN,
-                )
-                for r in range(Grid.GRID_LEN)
-                for c in range(Grid.GRID_LEN)
-            ]
-        ]
+    def get_subgrid(self, row: int, col: int) -> list[Cell]:
+        """Getter for a subgrid of cells."""
+        size: int = self.get_subgrid_size()
+        row_indicies: list[int] = [r + (row // size) * size for r in range(size)]
+        col_indicies: list[int] = [c + (col // size) * size for c in range(size)]
+        return [self[r, c] for r, c in product(row_indicies, col_indicies)]
 
     @classmethod
-    def init_empty_grid(cls) -> GridMatrix:
-        """Initialise an empty grid of cells set to a value of 0."""
-        return [[Cell(value=0) for _ in range(cls.COLS)] for _ in range(cls.ROWS)]
+    def _init_empty_grid(cls, size: int) -> list[list[Cell]]:
+        """Initialise a grid matrix with all cells set as empty."""
+        return [[Cell(maximum_value=size) for _ in range(size)] for _ in range(size)]
 
-    def validate(self) -> bool:
-        """Validate a grid upholds all rule constraints."""
+    def validate(self, complete: bool = False) -> bool:
+        """Validate a grid upholds all rule constraints (and is complete)."""
 
         # Generate counters for rows, columns and small grids
         counters: list[Counter] = []
-        for i in range(self.ROWS):
-            counters.append(Counter([cell.value for cell in self.grid[i]]))
-        for i in range(self.COLS):
-            counters.append(Counter([row[i].value for row in self.grid]))
-        for i in range(self.GRID):
-            offset_row: int = (i // self.GRID_LEN) * self.GRID_LEN
-            offset_col: int = (i % self.GRID_LEN) * self.GRID_LEN
-            indicies: list[int] = [
-                (row + offset_row, col + offset_col)
-                for row in range(self.GRID_LEN)
-                for col in range(self.GRID_LEN)
-            ]
-            counters.append(Counter([self[ind].value for ind in indicies]))
+        for i in range(self.get_grid_size()):
+            r: int = (i // self.get_subgrid_size()) * self.get_subgrid_size()
+            c: int = (i % self.get_subgrid_size()) * self.get_subgrid_size()
+            counters.append(Counter([cell for cell in self.get_row(i)]))
+            counters.append(Counter([cell for cell in self.get_column(i)]))
+            counters.append(Counter([cell for cell in self.get_subgrid(r, c)]))
 
         # Check if any counter breaches the constraints
         for counter in counters:
-            for value, count in counter.items():
-                if value != Cell._MIN and count > Cell._MIN + 1:
+            for cell, count in counter.items():
+                if cell.is_empty() and complete:
+                    return False
+                if not cell.is_empty() and count > 1:
                     return False
         return True
 
+    # String representation
+    # ---------------------
+    # To simplify grid storage, a string representation is used for loading into a grid
+    # instance and can be dumped to a string for easy correctness comparisons during any
+    # testing methods.
+
     @classmethod
     def load_string(cls, grid_string: str, post_validate: bool = True) -> Grid:
-        """Load in a sudoku grid from a string of cell values."""
+        """Load a sudoku grid from a string into cell instances of a grid."""
 
         # Validate the grid string
         if re.fullmatch(r"[0-9].{0,81}", grid_string) is None:
@@ -125,28 +156,19 @@ class Grid:
 
         # Create a new board and load each value
         grid: Grid = Grid()
-        index: int = 0
-        for row in range(cls.ROWS):
-            for col in range(cls.COLS):
-                grid[row, col] = int(grid_string[index])
-                if int(grid_string[index]) != Cell._MIN:
-                    grid[row, col].static = True
-                index += 1
+        for cell, char in zip(grid, grid_string):
+            cell.value = int(char)
+            cell.static = True if cell.value != 0 else cell.static
 
         # Validate the loaded string
         if post_validate and not grid.validate():
             raise ValueError(f"Loaded sudoku board is not valid: {grid_string}")
 
         # Reset cell counters
-        for row in range(cls.ROWS):
-            for col in range(cls.COLS):
-                grid[row, col].reset_counters()
-
+        for cell in grid:
+            cell.reset_counters()
         return grid
 
     def dump_string(self) -> str:
         """Dump the grid as a single string sequence of cell values."""
-        grid: str = ""
-        for row in self.grid:
-            grid += "".join([str(cell.value) for cell in row])
-        return grid
+        return "".join([str(cell.value) for cell in self])

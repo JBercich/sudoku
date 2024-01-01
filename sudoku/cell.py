@@ -1,63 +1,148 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-"""Sudoku cell dataclass."""
+"""Cell abstraction."""
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, field
+from typing import Any, Final, Iterable
+
+EMPTY_CELL_VALUE: Final[int] = 0
+DEFAULT_CELL_MINIMUM: Final[int] = 1
+DEFAULT_CELL_MAXIMUM: Final[int] = 9
 
 
 @dataclass
 class Cell:
-    """Sudoku board cell."""
+    """Sudoku grid cell.
 
-    _MIN: int = 0
-    _MAX: int = 9
+    Grid cells contain a value and must uphold sudoku constraints. This implementation
+    has full customisability over cell constraints to simplify usage of the cell in a
+    grid setting with different configurations. Only numbers will be used to encode the
+    values of a cell with 0 required as empty and n-m for some bounded range [n,m].
 
-    value: int
-    static: bool = False
-    _get_count: int = field(default=0, repr=False)
-    _set_count: int = field(default=0, repr=False)
+    Attributes:
+        value (int, optional): Integer value contained in the cell. Ranges in value from
+            n-m or encoded as empty. Defaults to `EMPTY_CELL_VALUE`.
+        static (bool, optional): Cell is frozen and the value cannot be modified.
+            Defaults to False.
+        minimum_value (int, optional): Minimum allowed value for the cell to be set to.
+            Defaults to `DEFAULT_CELL_MINIMUM`.
+        maximum_value (int, optional): Maximum allowed value for the cell to be set to.
+            Defaults to `DEFAULT_CELL_MAXIMUM`.
+    """
+
+    value: int = field(default=EMPTY_CELL_VALUE, repr=True)
+    static: bool = field(default=False, repr=True)
+    maximum_value: bool = field(default=DEFAULT_CELL_MAXIMUM, repr=True)
+    minimum_value: bool = field(default=DEFAULT_CELL_MINIMUM, repr=False)
+    _getter_counter: int = field(default=0, repr=True)
+    _setter_counter: int = field(default=0, repr=True)
+
+    # value
+    # -----
+    # Overloading of the `value` field is done to constrain attribute setting and also
+    # profile cell time complexity by instance gets and sets. NOTE: a static cell cannot
+    # be modified and will raise a RuntimeError.
 
     @property
     def value(self) -> int:
-        """Value property for overriding dataclass setter/getter."""
-        return self._value
+        pass
 
     @value.setter
-    def value(self, value: int):
-        """Custom value setter for upholding value constraints (le=9,ge=0)."""
-        if value < self._MIN or value > self._MAX:
+    def value(self, value: Any) -> None:
+        if isinstance(value, property):
+            value: int = EMPTY_CELL_VALUE
+        if not self.value_is_valid(value):
             raise ValueError(f"Invalid cell value: {value}")
         if self.static:
-            return
-        self._set_count += 1
+            raise RuntimeError("Cannot modify a static cell.")
+        self._setter_counter += 1
         self._value: int = value
 
     @value.getter
     def value(self) -> int:
-        """Custom value getter for incrementing field access counter."""
-        self._get_count += 1
+        self._getter_counter += 1
         return self._value
 
+    # minimum_value
+    # -------------
+    # Cell minimum value is an accessible field with a valid getter, but the setter is
+    # overloaded to prevent skewed bounds for the cell range. The lower bound minimum is
+    # kept as `DEFAULT_CELL_MINIMUM`. It cannot be set during initialisation also.
+
+    @property
+    def minimum_value(self) -> int:
+        pass
+
+    @minimum_value.setter
+    def minimum_value(self, minimum_value: int) -> None:
+        if not isinstance(minimum_value, property):
+            warnings.warn(f"Unable to set minimum value of a cell: {minimum_value}")
+        return
+
+    @minimum_value.getter
+    def minimum_value(self) -> int:
+        return DEFAULT_CELL_MINIMUM
+
+    # Dunder methods
+    # --------------
+    # Builtin dunders are overloaded to make cells easier to use in more complex logic
+    # associated with the grid and solvers. It will allow further collection logic in a
+    # wrapper grid as well as additional operations.
+
     def __eq__(self, other: Cell) -> bool:
-        """Custom equality dunder method for comparing instances."""
+        """Instance equality method by value."""
         return self.value == other.value
 
     def __lt__(self, other: Cell) -> bool:
-        """Custom less than dunder method for comparing instances in collection sort."""
+        """Instance less than method by value."""
         return self.value < other.value
 
     def __str__(self) -> str:
-        """Custom string dunder method for stdout."""
+        """Instance string method for value stdout."""
         return str(self.value)
 
-    def __repr__(self) -> str:
-        """Custom representation dunder method for stdout."""
-        return self.__str__()
+    def __hash__(self) -> int:
+        """Instance hash method for value."""
+        return hash(self.value)
+
+    # Helper methods
+    # --------------
+    # Additional methods are made to extend the readability of internal cell logic.
+    # Simple logic shortcuts made to reduce overhead when constructing larger and more
+    # dense code chunks helps improve algorithm design and enhancement to modular parts.
+
+    def set_empty_value(self) -> None:
+        """Set the cell value to the empty encoding."""
+        self.value = EMPTY_CELL_VALUE
+
+    def is_empty(self) -> bool:
+        """Cell is empty with the value encoded as empty."""
+        return self.value == EMPTY_CELL_VALUE
+
+    def value_is_valid(self, value: int) -> bool:
+        """Value is in the valid range for the cell (including empty encoding)."""
+        valid_value_range: Iterable = range(self.maximum_value + 1)
+        return value in valid_value_range
+
+    # Counter methods
+    # ---------------
+    # Certain cell-wrapping methods may further modify cells which can inadvertedly set
+    # or get the value field modifying the cell counters. Reset functions are used to
+    # allow more precise cell usage.
+
+    def reset_getter_counter(self):
+        """Reset the getter counter to 0."""
+        self._getter_counter = 0
+
+    def reset_setter_counter(self):
+        """Reset the setter counter to 0."""
+        self._setter_counter = 0
 
     def reset_counters(self):
         """Reset the getter and setter counters to 0."""
-        self._get_count = 0
-        self._set_count = 0
+        self.reset_getter_counter()
+        self.reset_setter_counter()

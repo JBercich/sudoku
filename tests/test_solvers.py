@@ -4,7 +4,7 @@
 import pytest
 
 from sudoku.grid import Grid
-from sudoku.solver import Solver, BacktrackingSolver
+from sudoku.solver import BacktrackingSolver, Solver
 
 TESTABLE_SOLVERS: list[Solver] = [
     BacktrackingSolver,
@@ -19,5 +19,5 @@ class TestSolvers:
         # Iterate through each test for the solver
         for problem, solution in sudoku_tests:
             grid: Grid = Grid.load_string(problem)
-            grid, _ = solver.solve(grid)
+            solver.run(grid)
             assert grid.dump_string() == solution

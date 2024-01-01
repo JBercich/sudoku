@@ -3,8 +3,13 @@
 
 import pytest
 
-from sudoku.cell import DEFAULT_CELL_MAXIMUM, DEFAULT_CELL_MINIMUM, Cell
-from sudoku.grid import DEFAULT_GRID_SIZE, Grid
+from sudoku.grid import (
+    DEFAULT_CELL_MAXIMUM,
+    DEFAULT_CELL_MINIMUM,
+    DEFAULT_GRID_SIZE,
+    Cell,
+    Grid,
+)
 
 
 class TestGrid:

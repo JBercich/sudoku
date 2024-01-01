@@ -7,7 +7,7 @@ from abc import ABC, abstractclassmethod
 from typing import Any
 
 from sudoku.grid import Grid
-from sudoku.profiler import Profiler
+from sudoku.solver.profiler import Profiler
 
 
 class Solver(ABC):

@@ -3,7 +3,7 @@
 
 import pytest
 
-from sudoku.cell import (
+from sudoku.grid import (
     DEFAULT_CELL_MAXIMUM,
     DEFAULT_CELL_MINIMUM,
     EMPTY_CELL_VALUE,

@@ -5,9 +5,7 @@
 
 import sys
 
-from sudoku.cell import Cell
-from sudoku.exceptions import UnsolvableException
-from sudoku.grid import Grid
+from sudoku.grid import Cell, Grid
 from sudoku.solver.solver import Solver
 
 sys.tracebacklimit = 0
@@ -17,12 +15,19 @@ class BacktrackingSolver(Solver):
     """Backtracking solver class."""
 
     @classmethod
-    def solve(cls, grid: Grid, **params):
-        cls._backtrack(grid, 0, 0)
+    def solve(cls, grid: Grid, search_all_values: bool = True, **params):
+        cls._backtrack(
+            grid=grid,
+            row=0,
+            col=0,
+            search_all_values=search_all_values,
+        )
         return grid
 
     @classmethod
-    def _backtrack(cls, grid: Grid, row: int, col: int) -> bool:
+    def _backtrack(
+        cls, grid: Grid, row: int, col: int, search_all_values: bool
+    ) -> bool:
         """Recursive solver method using backtracking."""
 
         # Perform base-case check of reaching out of bounds index, find next indicies
@@ -33,17 +38,18 @@ class BacktrackingSolver(Solver):
 
         # Skip the cell if it is a static fixed cell
         if grid[row, col].static:
-            return cls._backtrack(grid, next_row, next_col)
+            return cls._backtrack(grid, next_row, next_col, search_all_values)
 
-        for next_value in range(grid.max_value + 1):
+        lower_bound: int = 0 if not search_all_values else grid[row, col].value + 1
+        for next_value in range(lower_bound, grid.max_value + 1):
             if cls.validate_update(grid, row, col, next_value):
                 grid[row, col] = next_value
-                is_solved: bool = cls._backtrack(grid, next_row, next_col)
+                is_solved: bool = cls._backtrack(
+                    grid, next_row, next_col, search_all_values
+                )
                 if is_solved:
                     return True
         grid[row, col].set_empty_value()
-        if row == 0 and col == 0:
-            raise UnsolvableException()
         return False
 
     # Update validation

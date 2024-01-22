@@ -3,60 +3,53 @@
 
 """Experiment runner."""
 
-import csv
+import argparse
 import json
-from dataclasses import asdict
-from itertools import product
+from datetime import datetime
+from typing import Final
 
-from sudoku.grid import Grid
+from sudoku.runner import (
+    HyperparameterGrid,
+    ParameterResult,
+    Result,
+    SolverResult,
+    TestResult,
+    TestSuite,
+)
 from sudoku.solver import BacktrackingSolver, Profiler, Solver
 
+NUMBER_OF_TESTS: Final[int] = 100
+OUTPUT_FILENAME: Final[str] = "test_results.json"
 
-class HyperparameterGrid:
-    """Hyperparameter grid constructor."""
-
-    @staticmethod
-    def __new__(self, **kwargs) -> dict:
-        # Check all hyperparameter options are given as lists
-        for k, v in kwargs.items():
-            if not isinstance(v, list):
-                raise ValueError(f"Hyperparameter grid requires list of options: {k}")
-        # Create cartesian product of hyperparameters
-        return [
-            {parameter: value for parameter, value in zip(kwargs.keys(), parameter_set)}
-            for parameter_set in [
-                parameter_subset for parameter_subset in product(*kwargs.values())
-            ]
-        ]
-
-
-HYPERPARAMETER_GRID: dict[Solver, dict] = {
+# Define the exhaustive hyperparameter grid
+hyperparameter_grid: dict[Solver, dict] = {
     BacktrackingSolver: HyperparameterGrid(
         search_all_values=[True, False],
     )
 }
 
-SUDOKU_TEST_FILE: str = "data/sudoku.csv"
-SUDOKU_TEST_COUNT: int = 100
-SUDOKU_TEST_OUTPUT: str = "output.json"
+# Build simple argparser to read in test file and test count
+parser: argparse.ArgumentParser = argparse.ArgumentParser()
+parser.add_argument("filename", type=argparse.FileType("r"))
+parser.add_argument("tests", type=int, default=NUMBER_OF_TESTS)
 
 if __name__ == "__main__":
-    # Collect testing examples
-    examples: list[tuple] = []
-    with open(SUDOKU_TEST_FILE, "r") as example_file:
-        for i, (problem, solution) in enumerate(csv.reader(example_file), 0):
-            if i <= 100:
-                continue
-            examples.append((problem, solution))
-            if i >= 100 + SUDOKU_TEST_COUNT:
-                break
-    # Run the tests
-    for solver, hparams in HYPERPARAMETER_GRID.items():
-        print("Solver:", solver.__name__)
-        for hparam in hparams:
-            print("Parameters:", hparam)
-            for problem, solution in examples:
-                problem: Grid = Grid.load_string(problem)
-                # profiler: Profiler = solver.run(problem, **hparam)
-                # assert problem.validate()
-    # print(asdict(profiler))
+    # Load in args and build the test suite
+    args: argparse.Namespace = parser.parse_args()
+    suite: TestSuite = TestSuite.load(file=args.filename, count=100)
+    timestamp: str = datetime.now().strftime("%Y-%M-%d::%H:%m:%S")
+    output_file: str = f"{timestamp}_results.json"
+    # Run each solver with each parameter set
+    # solver_results: list[SolverResult] = []
+
+    for solver, parameter_list in hyperparameter_grid.items():
+        print("Running solver:", solver.__name__)
+        # hyperparameter_results: list[ParameterResult] = []
+        for parameters in parameter_list:
+            print("\tParameters:", parameters)
+            profiles: list[Profiler] = suite.run(solver, parameters)
+            print(profiles[0])
+            # hyperparameter_results.append(TestResult())
+            break
+    #     solver_results.append(ParameterResult(solver.__name__, hyperparameter_results))
+    # result: Result = Result(solvers=solver_results)

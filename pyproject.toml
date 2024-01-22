@@ -8,7 +8,8 @@ readme = "README.md"
 # Main dependencies
 
 [tool.poetry.dependencies]
-python = "^3.11" # Requires below 3.12 for `poetry`
+python = "^3.11"    # Requires below 3.12 for `poetry`
+pydantic = "^2.5.3"
 
 
 # Development dependencies

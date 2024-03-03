@@ -1,55 +1,48 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-"""Experiment runner."""
-
 import argparse
-import json
-from datetime import datetime
-from typing import Final
+import csv
+import dataclasses
+import datetime
+import re
 
-from sudoku.runner import (
-    HyperparameterGrid,
-    ParameterResult,
-    Result,
-    SolverResult,
-    TestResult,
-    TestSuite,
-)
-from sudoku.solver import BacktrackingSolver, Profiler, Solver
-
-NUMBER_OF_TESTS: Final[int] = 100
-OUTPUT_FILENAME: Final[str] = "test_results.json"
-
-# Define the exhaustive hyperparameter grid
-hyperparameter_grid: dict[Solver, dict] = {
-    BacktrackingSolver: HyperparameterGrid(
-        search_all_values=[True, False],
-    )
-}
-
-# Build simple argparser to read in test file and test count
+# Argparser for reading in a sudoku test file CSV with comma-delimited 'test,solution'
 parser: argparse.ArgumentParser = argparse.ArgumentParser()
-parser.add_argument("filename", type=argparse.FileType("r"))
-parser.add_argument("tests", type=int, default=NUMBER_OF_TESTS)
+parser.add_argument("--num_tests", "-n", type=int, default=1000)
+parser.add_argument("--input_pth", "-i", type=argparse.FileType("r"), required=True)
+
+
+# Populate a simple test suite
+@dataclasses.dataclass
+class Test:
+    test_no: int
+    problem: str
+    solution: str
+
+    def __post_init__(self):
+        # Regex matching the expected sudoku problem without rule validation
+        if re.match(r"^[0-9]{81}$", self.problem) is None:
+            raise RuntimeError(f"Invalid sudoku problem: {self.problem}")
+        if re.match(r"^[1-9]{81}$", self.solution) is None:
+            raise RuntimeError(f"Invalid sudoku solution: {self.solution}")
+
 
 if __name__ == "__main__":
     # Load in args and build the test suite
     args: argparse.Namespace = parser.parse_args()
-    suite: TestSuite = TestSuite.load(file=args.filename, count=100)
-    timestamp: str = datetime.now().strftime("%Y-%M-%d::%H:%m:%S")
-    output_file: str = f"{timestamp}_results.json"
-    # Run each solver with each parameter set
-    # solver_results: list[SolverResult] = []
+    timestamp: str = datetime.datetime.now().strftime("%Y-%M-%dT%H:%m:%S")
+    output_filename: str = f"{timestamp}-sudoku-results-{args.num_tests}.csv"
 
-    for solver, parameter_list in hyperparameter_grid.items():
-        print("Running solver:", solver.__name__)
-        # hyperparameter_results: list[ParameterResult] = []
-        for parameters in parameter_list:
-            print("\tParameters:", parameters)
-            profiles: list[Profiler] = suite.run(solver, parameters)
-            print(profiles[0])
-            # hyperparameter_results.append(TestResult())
+    # Setup the test collection and loop, perform simple validation on input fields
+    count: int = 1
+    tests: list[Test] = []
+    for row in csv.DictReader(args.input_pth, ["problem", "solution"]):
+        tests.append(Test(count, row["problem"], row["solution"]))
+        if count >= args.num_tests:
             break
-    #     solver_results.append(ParameterResult(solver.__name__, hyperparameter_results))
-    # result: Result = Result(solvers=solver_results)
+        count += 1
+
+    # Run each test
+    for test in tests:
+        print(f"{test.test_no:>5d} {test.problem}")

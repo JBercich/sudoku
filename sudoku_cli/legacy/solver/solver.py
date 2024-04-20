@@ -6,8 +6,8 @@
 from abc import ABC, abstractclassmethod
 from typing import Any
 
-from sudoku.grid import Grid
-from sudoku.solver.profiler import Profiler
+from sudoku_cli.legacy.grid import Grid
+from sudoku_cli.solver.profiler import Profiler
 
 
 class Solver(ABC):

@@ -5,8 +5,8 @@
 
 import sys
 
-from sudoku.grid import Grid
-from sudoku.solver.solver import Solver
+from sudoku_cli.legacy.grid import Grid
+from sudoku_cli.solver.solver import Solver
 
 sys.tracebacklimit = 0
 
@@ -25,9 +25,7 @@ class BacktrackingSolver(Solver):
         return grid
 
     @classmethod
-    def _backtrack(
-        cls, grid: Grid, row: int, col: int, search_all_values: bool
-    ) -> bool:
+    def _backtrack(cls, grid: Grid, row: int, col: int, search_all_values: bool) -> bool:
         """Recursive solver method using backtracking."""
 
         # Perform base-case check of reaching out of bounds index, find next indicies

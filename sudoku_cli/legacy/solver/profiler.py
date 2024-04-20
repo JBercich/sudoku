@@ -7,7 +7,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Optional
 
-from sudoku.grid import Grid
+from sudoku_cli.legacy.grid import Grid
 
 
 @dataclass

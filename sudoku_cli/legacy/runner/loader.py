@@ -7,9 +7,9 @@ import csv
 from dataclasses import dataclass
 from io import TextIOWrapper
 
-from sudoku.grid import Grid
-from sudoku.runner.results import TestResult
-from sudoku.solver import Profiler, Solver
+from sudoku_cli.legacy.grid import Grid
+from sudoku_cli.runner.results import TestResult
+from sudoku_cli.solver import Profiler, Solver
 
 
 @dataclass

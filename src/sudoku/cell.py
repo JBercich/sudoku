@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
+import dataclasses
 from typing import Any, Final
 
 from pydantic import BaseModel, Field
@@ -8,17 +9,10 @@ from pydantic import BaseModel, Field
 EMPTY_CELL_VALUE: Final[int] = 0
 
 
-class Cell(BaseModel):
-    value: int = Field(
-        ...,
-        ge=0,
-        le=9,
-        description="",
-    )
-    static: bool = Field(
-        default=False,
-        description="",
-    )
+@dataclasses.dataclass
+class Cell:
+    value: int
+    static: bool = False
 
     get_value_count: int = 0
     set_value_count: int = 0

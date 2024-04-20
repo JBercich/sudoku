@@ -11,7 +11,7 @@ from collections import Counter
 from itertools import product
 from typing import Any, Final
 
-from sudoku.grid.cell import DEFAULT_CELL_MINIMUM, Cell
+from sudoku.cell import DEFAULT_CELL_MINIMUM, Cell
 
 DEFAULT_GRID_SIZE: Final[int] = 9
 MINIMUM_GRID_SIZE: Final[int] = 2

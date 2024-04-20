@@ -1,4 +1,4 @@
-from sudoku.grid.cell import (
+from sudoku.cell import (
     DEFAULT_CELL_MAXIMUM,
     DEFAULT_CELL_MINIMUM,
     EMPTY_CELL_VALUE,

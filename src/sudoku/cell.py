@@ -4,7 +4,6 @@
 import dataclasses
 from typing import Any, Final
 
-from pydantic import BaseModel, Field
 
 EMPTY_CELL_VALUE: Final[int] = 0
 

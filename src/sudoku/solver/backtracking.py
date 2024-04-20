@@ -5,7 +5,7 @@
 
 import sys
 
-from sudoku.grid import Cell, Grid
+from sudoku.grid import Grid
 from sudoku.solver.solver import Solver
 
 sys.tracebacklimit = 0

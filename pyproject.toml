@@ -18,6 +18,9 @@ typer = { extras = ["all"], version = "^0.12.3" }
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.mypy]
+no_implicit_optional = false
+
 [tool.ruff]
 line-length = 89
 indent-width = 4

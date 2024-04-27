@@ -3,13 +3,11 @@
 
 from abc import ABC, abstractmethod
 
-from sudoku_cli.sudoku import Grid
-
 
 class Solver(ABC):
     name: str
 
-    @abstractmethod
     @classmethod
-    def solve(cls, grid: Grid, *args, **kwargs) -> None:
+    @abstractmethod
+    def solve(cls, *args, **kwargs):
         pass

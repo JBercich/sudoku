@@ -1,79 +1,70 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
+from enum import Enum, unique
+from typing import TypeAlias, Literal
+
 from sudoku_cli.sudoku import Grid
 from sudoku_cli.sudoku.solvers.abc import Solver
+
+UpdateValidator: TypeAlias = Literal["full", "changed"]
+
+
+def _check_update_entire_grid(grid: Grid, *_, **__) -> bool:
+    return grid.is_valid()
+
+
+def _check_update_single_cell(grid: Grid, row_idx: int, col_idx: int, *_, **__) -> bool:
+    return (
+        grid.check_row_constraint(row_idx)
+        and grid.check_col_constraint(col_idx)
+        and grid.check_subgrid_constraint(row_idx, col_idx)
+    )
+
+
+def _lower_bounded_default(*_, **__) -> int:
+    return 1
+
+
+def _lower_bounded_smarter(grid: Grid, row_idx: int, col_idx: int, *_, **__) -> int:
+    return grid.values[row_idx, col_idx] + 1
 
 
 class BackTracking(Solver):
     name: str = "backtracking"
 
+    @unique
+    class UpdateMethod(Enum):
+        entire_grid = _check_update_entire_grid
+        single_cell = _check_update_single_cell
+
+    @unique
+    class LowerBounded(Enum):
+        default_bound = _lower_bounded_default
+        smarter_bound = _lower_bounded_smarter
+
     @classmethod
-    def solve(cls, grid: Grid, *args, **kwargs) -> None:
-        pass
+    def solve(
+        cls,
+        grid: Grid,
+        update_method: UpdateMethod = UpdateMethod.single_cell,
+        lower_bounded: LowerBounded = LowerBounded.default_bound,
+    ) -> bool:
+        def _backtrack(grid: Grid, row_idx: int, col_idx: int) -> bool:
+            if row_idx >= 9 or col_idx >= 9:
+                return True
+            next_col: int = col_idx + 1 if col_idx < 8 else 0
+            next_row: int = row_idx + 1 if next_col == 0 else row_idx
 
-    # @classmethod
-    # def solve(cls, grid: Grid, search_all_values: bool = True, **params):
-    #     cls._backtrack(
-    #         grid=grid,
-    #         row=0,
-    #         col=0,
-    #         search_all_values=search_all_values,
-    #     )
-    #     return grid
+            if grid.frozen[row_idx, col_idx]:
+                return _backtrack(grid, next_row, next_col)
 
-    # @classmethod
-    # def _backtrack(cls, grid: Grid, row: int, col: int, search_all_values: bool) -> bool:
-    #     """Recursive solver method using backtracking."""
+            for next_value in range(lower_bounded(grid, row_idx, col_idx), 10):  # type: ignore
+                grid.values[row_idx, col_idx] = next_value
+                if update_method(grid, row_idx, col_idx):  # type: ignore
+                    if _backtrack(grid, next_row, next_col):
+                        return True
+            grid.values[row_idx, col_idx] = 0
+            return False
 
-    #     # Perform base-case check of reaching out of bounds index, find next indicies
-    #     if row >= grid.get_grid_size() or col >= grid.get_grid_size():
-    #         return True
-    #     next_col: int = col + 1 if col < grid.max_value - 1 else 0
-    #     next_row: int = row + 1 if next_col == 0 else row
-
-    #     # Skip the cell if it is a static fixed cell
-    #     if grid[row, col].static:
-    #         return cls._backtrack(grid, next_row, next_col, search_all_values)
-
-    #     lower_bound: int = 0 if not search_all_values else grid[row, col].value + 1
-    #     for next_value in range(lower_bound, grid.max_value + 1):
-    #         if cls.validate_update(grid, row, col, next_value):
-    #             grid[row, col] = next_value
-    #             is_solved: bool = cls._backtrack(
-    #                 grid, next_row, next_col, search_all_values
-    #             )
-    #             if is_solved:
-    #                 return True
-    #     grid[row, col].set_empty_value()
-    #     return False
-
-    # # Update validation
-    # # -----------------
-    # # When performing individual updates of a cell during backtracking, reducing update
-    # # cell sets and gets will minimise the overall runtime complexity. This section does
-    # # not perform full grid validation, it will only validate the row, column and grid
-    # # of the current cell being updated.
-
-    # @classmethod
-    # def validate_update(cls, grid: Grid, row: int, col: int, value: int) -> bool:
-    #     """Validate a cell update for the sudoku grid."""
-    #     row_upd: bool = cls.validate_row_update(grid, row, value)
-    #     col_upd: bool = cls.validate_col_update(grid, col, value)
-    #     grid_upd: bool = cls.validate_grid_update(grid, row, col, value)
-    #     return row_upd and col_upd and grid_upd
-
-    # @classmethod
-    # def validate_row_update(cls, grid: Grid, row: int, value: int) -> bool:
-    #     """Validate a row update with a value at some index upholds constraints."""
-    #     return value not in [cell.value for cell in grid.get_row(row)]
-
-    # @classmethod
-    # def validate_col_update(cls, grid: Grid, col: int, value: int) -> bool:
-    #     """Validate a column update with a value at some index upholds constraints."""
-    #     return value not in [cell.value for cell in grid.get_column(col)]
-
-    # @classmethod
-    # def validate_grid_update(cls, grid: Grid, row: int, col: int, value: int) -> bool:
-    #     """Validate a grid update with a value at some index upholds constraints."""
-    #     return value not in [cell.value for cell in grid.get_subgrid(row, col)]
+        return _backtrack(grid, 0, 0)

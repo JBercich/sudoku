@@ -6,7 +6,7 @@ authors = ["JBercich <joshbercich@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.scripts]
-sudoku-cli = "sudoku_cli.main:app"
+sudoku-cli = "sudoku_cli.__main__:app"
 
 [tool.poetry.dependencies]
 python = "^3.10"

@@ -23,18 +23,40 @@ class Grid:
         self.values = self.values.reshape((self.dim, self.dim))
         self.frozen: DTypeGridFrozen = np.copy(self.values) != 0
 
-    def is_complete(self) -> bool:
-        iter_range: range = range(0, self.dim, self.dim // 3)
-        for row in self.values:
-            if 0 in row or any([v > 1 for v in np.unique(row, return_counts=True)[1]]):
-                return False
-        for col in self.values.T:
-            if 0 in col or any([v > 1 for v in np.unique(col, return_counts=True)[1]]):
-                return False
-        for row, col in itertools.product(iter_range, iter_range):
-            row_to: int = row + self.dim // 3
-            col_to: int = col + self.dim // 3
-            sub: DTypeGridValues = self.values[row:row_to, col:col_to]
-            if 0 in sub or any([v > 1 for v in np.unique(sub, return_counts=True)[1]]):
-                return False
+    def check_row_constraint(self, row_idx: int) -> bool:
+        assert row_idx in range(9)
+        vals, counts = np.unique(self.values[row_idx, :], return_counts=True)
+        if any([v > 1 for k, v in zip(vals, counts) if k != 0]):
+            return False
         return True
+
+    def check_col_constraint(self, col_idx: int) -> bool:
+        assert col_idx in range(9)
+        vals, counts = np.unique(self.values[:, col_idx], return_counts=True)
+        if any([v > 1 for k, v in zip(vals, counts) if k != 0]):
+            return False
+        return True
+
+    def check_subgrid_constraint(self, row_idx: int, col_idx: int) -> bool:
+        assert row_idx in range(9) and col_idx in range(9)
+        row_idx = row_idx - (row_idx % 3)
+        col_idx = col_idx - (col_idx % 3)
+        sub: DTypeGridValues = self.values[row_idx : row_idx + 3, col_idx : col_idx + 3]
+        vals, counts = np.unique(sub, return_counts=True)
+        if any([v > 1 for k, v in zip(vals, counts) if k != 0]):
+            return False
+        return True
+
+    def is_valid(self) -> bool:
+        for idx in range(9):
+            if self.check_row_constraint(idx) and self.check_col_constraint(idx):
+                continue
+            return False
+        for row_idx, col_idx in itertools.product(range(9, 3), range(9, 3)):
+            if self.check_subgrid_constraint(row_idx, col_idx):
+                continue
+            return False
+        return True
+
+    def is_complete(self) -> bool:
+        return self.is_valid() and 0 not in self.values

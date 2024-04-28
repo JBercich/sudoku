@@ -11,7 +11,7 @@ from rich.progress import track
 
 from sudoku_cli import __version__
 from sudoku_cli.sudoku import Grid
-from sudoku_cli.sudoku.solvers import BackTracking
+from sudoku_cli.sudoku.solvers import ExactCover
 
 app: Typer = Typer(
     name="sudoku-cli",
@@ -113,10 +113,12 @@ def solve(
     grids += grid_file if grid_file is not None else []
     for i, grid in track(enumerate(grids, 1), description="Solving"):
         t0 = time.time()
-        BackTracking.solve(grid, lower_bounded=BackTracking.LowerBounded.default_bound)
+        ExactCover.solve(grid)
+        # print(grid.values)
         print(time.time() - t0)
         if grid.is_complete():
             print("Solved")
+        # break
         if i > 10:
             break
 

@@ -2,67 +2,77 @@
 # -*- coding:utf-8 -*-
 
 from itertools import product
+from enum import Enum, unique
+from typing import Dict, List, Tuple, TypeAlias, Set
+
+import numpy as np
 
 from sudoku_cli.sudoku import Grid
 from sudoku_cli.sudoku.solvers.abc import Solver
 
 
+@unique
+class _Constraint(int, Enum):
+    POS = 0
+    ROW = 1
+    COL = 2
+    BOX = 3
+
+
+ConstraintIdx: TypeAlias = Tuple[int, int]
+ConstraintMap: TypeAlias = Tuple[_Constraint, ConstraintIdx]
+GridSelection: TypeAlias = Tuple[int, int, int]
+
+
 class ExactCover(Solver):
     name: str = "ExactCover"
 
-    # @classmethod
-    # def _setup_constraints(cls) -> Dict:
+    @classmethod
+    def _setup_constraints_and_selections(cls, x_size: int, y_size: int) -> Tuple:
+        size: int = x_size * y_size
+        constraints: List[ConstraintMap] = (
+            [(_Constraint.POS, x) for x in product(range(size), range(size))]
+            + [(_Constraint.ROW, x) for x in product(range(size), range(1, size + 1))]
+            + [(_Constraint.COL, x) for x in product(range(size), range(1, size + 1))]
+            + [(_Constraint.BOX, x) for x in product(range(size), range(1, size + 1))]
+        )
+        selections: Dict[GridSelection, List[ConstraintMap]] = {}
+        for row, col, number in product(range(size), range(size), range(1, size + 1)):
+            box: int = (row // x_size) * x_size + (col // y_size)
+            selections[(row, col, number)] = [
+                (_Constraint.POS, (row, col)),
+                (_Constraint.ROW, (row, number)),
+                (_Constraint.COL, (col, number)),
+                (_Constraint.BOX, (box, number)),
+            ]
+        return constraints, selections
 
     @classmethod
-    def solve(cls, grid: Grid):
+    def _setup_constraints_mapping(
+        cls,
+        constraints: List[ConstraintMap],
+        selections: Dict[GridSelection, List[ConstraintMap]],
+    ) -> Dict[ConstraintMap, Set[GridSelection]]:
+        sets: Dict[ConstraintMap, Set[GridSelection]] = {j: set() for j in constraints}
+        for grid_selection, constraint_maps in selections.items():
+            for constraint_map in constraint_maps:
+                sets[constraint_map].add(grid_selection)
+        return sets
+
+    @classmethod
+    def solve(cls, grid: Grid, x_size: int = 3, y_size: int = 3):
         print("Setting up exact cover problem.")
 
-        R, C = (3, 3)
-        N = R * C
-        X = (
-            [("rc", rc) for rc in product(range(N), range(N))]
-            + [("rn", rn) for rn in product(range(N), range(1, N + 1))]
-            + [("cn", cn) for cn in product(range(N), range(1, N + 1))]
-            + [("bn", bn) for bn in product(range(N), range(1, N + 1))]
-        )
+        constraints, selections = cls._setup_constraints_and_selections(x_size, y_size)
+        constraints_map = cls._setup_constraints_mapping(constraints, selections)
 
-        print(len(X) / 4, X[:5])
+        for (row_idx, col_idx), value in np.ndenumerate(grid.values):
+            if value != 0:
+                cls.select(constraints_map, selections, (row_idx, col_idx, value))
 
-        Y = dict()
-
-        for r, c, n in product(range(N), range(N), range(1, N + 1)):
-            b = (r // R) * R + (c // C)  # Box number
-            Y[(r, c, n)] = [
-                ("rc", (r, c)),
-                ("rn", (r, n)),
-                ("cn", (c, n)),
-                ("bn", (b, n)),
-            ]
-
-        print(list(Y.keys())[0])
-        X, Y = cls.exact_cover(X, Y)
-        print(len(list(Y.keys())), len(X))
-        # print(Y)
-
-        # print(len(X))
-        for i, row in enumerate(grid.values):
-            for j, n in enumerate(row):
-                if n:
-                    cls.select(X, Y, (i, j, n))
-        # print(len(X))
-
-        for solution in cls.solved(X, Y, []):
+        for solution in cls.solved(constraints_map, selections, []):
             for r, c, n in solution:
                 grid.values[r, c] = n
-
-    @classmethod
-    def exact_cover(cls, X, Y):
-        X = {j: set() for j in X}
-        for i, row in Y.items():
-            print(i, row)
-            for j in row:
-                X[j].add(i)
-        return X, Y
 
     @classmethod
     def solved(cls, X, Y, solution):

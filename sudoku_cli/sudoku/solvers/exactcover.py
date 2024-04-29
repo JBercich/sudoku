@@ -60,50 +60,65 @@ class ExactCover(Solver):
         return sets
 
     @classmethod
-    def solve(cls, grid: Grid, x_size: int = 3, y_size: int = 3):
-        print("Setting up exact cover problem.")
+    def _reduce_constraints(
+        cls,
+        constraints_map: Dict[ConstraintMap, Set[GridSelection]],
+        selections: Dict[GridSelection, List[ConstraintMap]],
+        index: GridSelection,
+    ) -> List[Set[GridSelection]]:
+        selected_contraints: List[Set[GridSelection]] = []
+        for constraint in selections[index]:
+            for selection in constraints_map[constraint]:
+                for selection_constraint in selections[selection]:
+                    if selection_constraint != constraint:
+                        constraints_map[selection_constraint].remove(selection)
+            selected_contraints.append(constraints_map.pop(constraint))
+        return selected_contraints
 
+    @classmethod
+    def _restore_constraints(
+        cls,
+        constraints_map: Dict[ConstraintMap, Set[GridSelection]],
+        selections: Dict[GridSelection, List[ConstraintMap]],
+        index: GridSelection,
+        selected_contraints: List[Set[GridSelection]],
+    ) -> None:
+        for constraints in reversed(selections[index]):
+            constraints_map[constraints] = selected_contraints.pop()
+            for selection in constraints_map[constraints]:
+                for selection_iter in selections[selection]:
+                    if selection_iter != constraints:
+                        constraints_map[selection_iter].add(selection)
+
+    @classmethod
+    def _generate_solutions(
+        cls,
+        constraints_map: Dict[ConstraintMap, Set[GridSelection]],
+        selections: Dict[GridSelection, List[ConstraintMap]],
+        grids: List[GridSelection] = [],
+    ):
+        if not constraints_map:
+            yield list(grids)
+        else:
+            constraint = min(constraints_map, key=lambda c: len(constraints_map[c]))
+            for index in list(constraints_map[constraint]):
+                grids.append(index)
+                subsets = cls._reduce_constraints(constraints_map, selections, index)
+                for grid in cls._generate_solutions(constraints_map, selections, grids):
+                    yield grid
+                cls._restore_constraints(constraints_map, selections, index, subsets)
+                grids.pop()
+
+    @classmethod
+    def solve(cls, grid: Grid, x_size: int = 3, y_size: int = 3):
         constraints, selections = cls._setup_constraints_and_selections(x_size, y_size)
         constraints_map = cls._setup_constraints_mapping(constraints, selections)
 
-        for (row_idx, col_idx), value in np.ndenumerate(grid.values):
+        for (row, col), value in np.ndenumerate(grid.values):
             if value != 0:
-                cls.select(constraints_map, selections, (row_idx, col_idx, value))
+                cls._reduce_constraints(constraints_map, selections, (row, col, value))
 
-        for solution in cls.solved(constraints_map, selections, []):
-            for r, c, n in solution:
-                grid.values[r, c] = n
-
-    @classmethod
-    def solved(cls, X, Y, solution):
-        if not X:
-            yield list(solution)
-        else:
-            c = min(X, key=lambda c: len(X[c]))
-            for r in list(X[c]):
-                solution.append(r)
-                cols = cls.select(X, Y, r)
-                for s in cls.solved(X, Y, solution):
-                    yield s
-                cls.deselect(X, Y, r, cols)
-                solution.pop()
-
-    @classmethod
-    def select(cls, X, Y, r):
-        cols = []
-        for j in Y[r]:
-            for i in X[j]:
-                for k in Y[i]:
-                    if k != j:
-                        X[k].remove(i)
-            cols.append(X.pop(j))
-        return cols
-
-    @classmethod
-    def deselect(cls, X, Y, r, cols):
-        for j in reversed(Y[r]):
-            X[j] = cols.pop()
-            for i in X[j]:
-                for k in Y[i]:
-                    if k != j:
-                        X[k].add(i)
+        for solution_index in cls._generate_solutions(constraints_map, selections, []):
+            for row, col, value in solution_index:
+                grid.values[row, col] = value
+            break

@@ -1,59 +1,46 @@
-# #!/usr/bin/env python3
-# # -*- coding:utf-8 -*-
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
 
-# from abc import ABC, abstractmethod
-# from typing import Iterable
+from collections import Counter
 
-# class GridValidator(ABC):
-#     @classmethod
-#     @abstractmethod
-#     def validate(cls, grid):
-#         raise NotImplementedError
-
-#     @staticmethod
-#     def check_constraint(values: Iterable):
-#         subset: set = set(values)
-#         subset_is_incomplete: bool = 0 in subset
-#         if 0 not in subset and len(subset) == len(values):
-#             return True
-#         elif 0 in subset
-
-#         return False
+from sudoku.grid import Grid
 
 
-# class FullGridValidator(GridValidator):
-#     @classmethod
-#     def validate(cls, grid):
-#         print(grid)
-#         if not cls.check_constraint(grid[:9]):
-#             raise Exception
+class GridValidator:
+    @classmethod
+    def is_valid(cls, grid: Grid) -> bool:
+        for i in range(grid.dim_sq**2):
+            if not cls.check_row_constraint(grid, i):
+                return False
+        for i in range(grid.dim_sq**2):
+            if not cls.check_col_constraint(grid, i):
+                return False
+        for i in range(grid.dim_sq**2):
+            if not cls.check_box_constraint(grid, i):
+                return False
+        return True
 
+    @classmethod
+    def is_complete(cls, grid: Grid) -> bool:
+        return grid.MISSING not in grid.values and cls.is_valid(grid)
 
-# x = [int(i) for i in "002085700000607000000100000400001007267504000001000090518700430030010506900003001"]
+    @staticmethod
+    def check_row_constraint(grid: Grid, row: int) -> bool:
+        i: int = row * grid.dim_bx
+        cntr: Counter = Counter(grid.values[i : i + grid.dim_bx])
+        return all([j <= 1 for i, j in cntr.items() if i != grid.MISSING])
 
-# FullGridValidator.validate(x)
+    @staticmethod
+    def check_col_constraint(grid: Grid, col: int) -> bool:
+        cntr: Counter = Counter(grid.values[col :: grid.dim_bx])
+        return all([j <= 1 for i, j in cntr.items() if i != grid.MISSING])
 
-
-# # def check_row_constraint(self, row_idx: int) -> bool:
-# #     assert row_idx in range(9)
-# #     vals, counts = np.unique(self.values[row_idx, :], return_counts=True)
-# #     if any([v > 1 for k, v in zip(vals, counts) if k != 0]):
-# #         return False
-# #     return True
-
-# # def check_col_constraint(self, col_idx: int) -> bool:
-# #     assert col_idx in range(9)
-# #     vals, counts = np.unique(self.values[:, col_idx], return_counts=True)
-# #     if any([v > 1 for k, v in zip(vals, counts) if k != 0]):
-# #         return False
-# #     return True
-
-# # def check_subgrid_constraint(self, row_idx: int, col_idx: int) -> bool:
-# #     assert row_idx in range(9) and col_idx in range(9)
-# #     row_idx = row_idx - (row_idx % 3)
-# #     col_idx = col_idx - (col_idx % 3)
-# #     sub: DTypeGridValues = self.values[row_idx : row_idx + 3, col_idx : col_idx + 3]
-# #     vals, counts = np.unique(sub, return_counts=True)
-# #     if any([v > 1 for k, v in zip(vals, counts) if k != 0]):
-# #         return False
-# #     return True
+    @staticmethod
+    def check_box_constraint(grid: Grid, box: int) -> bool:
+        cntr: Counter = Counter()
+        col_offset: int = box % grid.dim_sq * grid.dim_sq
+        row_offset: int = box // grid.dim_sq * grid.dim_sq
+        for offset in range(grid.dim_sq):
+            i: int = (row_offset + offset) * grid.dim_bx + col_offset
+            cntr.update(grid.values[i : i + grid.dim_sq])
+        return all([j <= 1 for i, j in cntr.items() if i != grid.MISSING])

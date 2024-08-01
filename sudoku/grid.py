@@ -18,6 +18,7 @@ class Grid:
         self.values: list[int] = self._init_values(grid)
         self.frozen: list[int] = self._init_frozen(self.values)
         self.dim_sq: int = self._init_dim_sq(self.values)
+        self.dim_bx: int = int(self.dim_sq**2)
 
     @classmethod
     def _parse_str_grid(cls, grid: str) -> list[int]:
@@ -64,12 +65,3 @@ class Grid:
         if dim_sq != (dim := int(dim_sq)):
             raise GridException(f"Grid is non-square: {dim} x `{dim}")
         return dim
-
-
-i = 0
-with open("./examples.csv", "r") as fp:
-    for line in fp:
-        print(i, Grid(grid=line))
-        i += 1
-
-print(i)

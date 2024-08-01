@@ -3,10 +3,10 @@
 
 from collections import Counter
 
-from sudoku.grid import Grid
+from sudoku.grid.grid import Grid
 
 
-class GridValidator:
+class Validator:
     @classmethod
     def is_valid(cls, grid: Grid) -> bool:
         for i in range(grid.dim_sq**2):

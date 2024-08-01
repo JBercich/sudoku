@@ -9,13 +9,13 @@ from sudoku.grid.grid import Grid
 class Validator:
     @classmethod
     def is_valid(cls, grid: Grid) -> bool:
-        for i in range(grid.dim_sq**2):
+        for i in range(grid.dim_bx):
             if not cls.check_row_constraint(grid, i):
                 return False
-        for i in range(grid.dim_sq**2):
+        for i in range(grid.dim_bx):
             if not cls.check_col_constraint(grid, i):
                 return False
-        for i in range(grid.dim_sq**2):
+        for i in range(grid.dim_bx):
             if not cls.check_box_constraint(grid, i):
                 return False
         return True
@@ -44,3 +44,25 @@ class Validator:
             i: int = (row_offset + offset) * grid.dim_bx + col_offset
             cntr.update(grid.values[i : i + grid.dim_sq])
         return all([j <= 1 for i, j in cntr.items() if i != grid.MISSING])
+
+
+class FastValidator(Validator):
+    @classmethod
+    def is_valid(cls, grid: Grid) -> bool:
+        cols: list[int] = list(range(grid.dim_bx))  # All columns
+        rows: list[int] = list(range(grid.dim_bx))
+        rows.pop()  # Ignore the final row
+        boxs: list[int] = list(range(grid.dim_bx))
+        _: list[int] = [
+            boxs.pop(i) for i in range(0, grid.dim_bx - 1, grid.dim_sq)
+        ]  # Ignore last boxes per row except the bottom
+        for i in cols:
+            if not cls.check_col_constraint(grid, i):
+                return False
+        for i in rows:
+            if not cls.check_row_constraint(grid, i):
+                return False
+        for i in boxs:
+            if not cls.check_box_constraint(grid, i):
+                return False
+        return True

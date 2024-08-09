@@ -1,51 +1,81 @@
-# #!/usr/bin/env python3
-# # -*- coding:utf-8 -*-
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
 
-# from itertools import product
-# from enum import Enum, unique
-# from typing import Dict, List, Tuple, TypeAlias, Set
+from sudoku.solver.abc import Solver
 
-# import numpy as np
-
-# from sudoku.sudoku import Grid
-# from sudoku.sudoku.solvers.abc import Solver
+import itertools
+from enum import Enum, unique
+from typing import Tuple, TypeAlias
 
 
-# @unique
-# class _Constraint(int, Enum):
-#     POS = 0
-#     ROW = 1
-#     COL = 2
-#     BOX = 3
+@unique
+class _Constraint(int, Enum):
+    POS = 0
+    ROW = 1
+    COL = 2
+    BOX = 3
 
 
-# ConstraintIdx: TypeAlias = Tuple[int, int]
-# ConstraintMap: TypeAlias = Tuple[_Constraint, ConstraintIdx]
-# GridSelection: TypeAlias = Tuple[int, int, int]
+ConstraintIdx: TypeAlias = Tuple[int, int]
+ConstraintMap: TypeAlias = Tuple[_Constraint, ConstraintIdx]
+GridSelection: TypeAlias = Tuple[int, int, int]
 
 
-# class ExactCover(Solver):
-#     name: str = "ExactCover"
+class ExactCoverSolver(Solver):
+    def solve(self) -> bool:
+        return False
 
-#     @classmethod
-#     def _setup_constraints_and_selections(cls, x_size: int, y_size: int) -> Tuple:
-#         size: int = x_size * y_size
-#         constraints: List[ConstraintMap] = (
-#             [(_Constraint.POS, x) for x in product(range(size), range(size))]
-#             + [(_Constraint.ROW, x) for x in product(range(size), range(1, size + 1))]
-#             + [(_Constraint.COL, x) for x in product(range(size), range(1, size + 1))]
-#             + [(_Constraint.BOX, x) for x in product(range(size), range(1, size + 1))]
-#         )
-#         selections: Dict[GridSelection, List[ConstraintMap]] = {}
-#         for row, col, number in product(range(size), range(size), range(1, size + 1)):
-#             box: int = (row // x_size) * x_size + (col // y_size)
-#             selections[(row, col, number)] = [
-#                 (_Constraint.POS, (row, col)),
-#                 (_Constraint.ROW, (row, number)),
-#                 (_Constraint.COL, (col, number)),
-#                 (_Constraint.BOX, (box, number)),
-#             ]
-#         return constraints, selections
+
+# SETUP CONSTRAINTS AND SELECTIONS
+box_size: int = 3
+grd_size: int = 9
+arr_size: int = 81
+
+size: int = grd_size
+
+_idxs: list[int] = list(range(grd_size))
+_vals: list[int] = list(range(1, grd_size + 1))
+pos_cnst: list[tuple] = [(0, x) for x in itertools.product(_idxs, _idxs)]
+row_cnst: list[tuple] = [(1, x) for x in itertools.product(_idxs, _vals)]
+col_cnst: list[tuple] = [(2, x) for x in itertools.product(_idxs, _vals)]
+box_cnst: list[tuple] = [(3, x) for x in itertools.product(_idxs, _vals)]
+cnsts: list[tuple] = pos_cnst + row_cnst + col_cnst + box_cnst
+sltns: dict[tuple, list[tuple]] = {}
+
+for row, col, val in itertools.product(_idxs, _idxs, _vals):
+    box: int = (row // box_size) * box_size + (col // box_size)
+    sltns[(row, col, val)] = [
+        (0, (row, col)),
+        (1, (row, val)),
+        (2, (col, val)),
+        (3, (box, val)),
+    ]
+
+sets: dict[tuple, set[tuple]] = {j: set() for j in cnsts}
+for sltn, cnst in sltns.items():
+    for c in cnst:
+        sets[c].add(sltn)
+
+
+# @classmethod
+# def _setup_constraints_and_selections(cls, x_size: int, y_size: int) -> Tuple:
+#     constraints: List[ConstraintMap] = (
+#         [(_Constraint.POS, x) for x in product(range(size), range(size))]
+#         + [(_Constraint.ROW, x) for x in product(range(size), range(1, size + 1))]
+#         + [(_Constraint.COL, x) for x in product(range(size), range(1, size + 1))]
+#         + [(_Constraint.BOX, x) for x in product(range(size), range(1, size + 1))]
+#     )
+#     selections: Dict[GridSelection, List[ConstraintMap]] = {}
+#     for row, col, number in product(range(size), range(size), range(1, size + 1)):
+#         box: int = (row // x_size) * x_size + (col // y_size)
+#         selections[(row, col, number)] = [
+#             (_Constraint.POS, (row, col)),
+#             (_Constraint.ROW, (row, number)),
+#             (_Constraint.COL, (col, number)),
+#             (_Constraint.BOX, (box, number)),
+#         ]
+#     return constraints, selections
+
 
 #     @classmethod
 #     def _setup_constraints_mapping(

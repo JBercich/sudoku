@@ -1,0 +1,11 @@
+#c1 {
+    layout: grid;
+    grid-size: 3 1;
+
+}
+#p1 {
+    margin: 4;
+}
+#p1, #p2, #p3 {
+    width: 1fr;
+}

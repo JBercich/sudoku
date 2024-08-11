@@ -9,6 +9,7 @@ repos:
       - id: check-case-conflict
       - id: check-json
       - id: pretty-format-json
+        exclude: ".ipynb"
       - id: detect-private-key
 
   - repo: https://github.com/astral-sh/ruff-pre-commit

@@ -1,7 +1,3 @@
 # Dataset Sources
 
-Overview of different datasets used in this repository.
-
-| Source | Author | Size      | Link                                                         |
-| ------ | ------ | --------- | ------------------------------------------------------------ |
-| Kaggle | Vopani | 9 million | [Link](https://www.kaggle.com/datasets/rohanrao/sudoku/data) |
+Data is sourced from [https://github.com/t-dillon/tdoku](https://github.com/t-dillon/tdoku) with contributions noted in individual files

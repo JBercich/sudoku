@@ -81,10 +81,3 @@ class Grid:
         if dim_sq != (dim := int(dim_sq)):
             raise GridException(f"Grid is non-square: {dim} x `{dim}")
         return dim
-
-
-class NumpyGrid(Grid):
-    def __init__(self, grid: Any):
-        super().__init__(grid)
-        self.values = np.asarray(self.values)
-        self.frozen = np.asarray(self.frozen)

@@ -14,7 +14,8 @@ class Sudoku:
 
     @classmethod
     def _cells_str_to_array(cls, cells: str) -> np.ndarray:
-        dim: int = int(np.sqrt(len(tmp_cells := [int(x) for x in cells])))
+        tmp_cells: list[int] = [int(x) for x in cells]
+        dim: int = int(np.sqrt(len(tmp_cells)))
         return np.asarray(tmp_cells, dtype=np.uint8).reshape((dim, dim))
 
     def __str__(self) -> str:

@@ -3,7 +3,7 @@
 
 from collections import Counter
 
-from sudoku.grid.grid import Grid
+from sudoku.legacy.grid import Grid
 
 
 class Validator:

@@ -58,9 +58,10 @@ if __name__ == "__main__":
     def exhaust_numpy_loader(filepath: str = target_file):
         [_ for _ in DataLoader.load_file_to_numpy(open(filepath))]
 
+    print(f"  file: {target_file} has {total_lines} lines")
     t_native: float = timeit.timeit(number=10, stmt=exhaust_native_loader)
+    print(f"native: {total_lines / np.mean(t_native):.6f} lines/sec")
+    print(f"        {np.mean(t_native) / total_lines:.6f} secs/line")
     t_numpy: float = timeit.timeit(number=10, stmt=exhaust_numpy_loader)
-    print(f"native: {total_lines / np.mean(t_native):.6f} line/sec")
-    print(f"        {np.mean(t_native) / total_lines:.6f} sec/line")
-    print(f" numpy: {total_lines / np.mean(t_numpy):.6f} line/sec")
-    print(f"        {np.mean(t_numpy) / total_lines:.6f} sec/line")
+    print(f" numpy: {total_lines / np.mean(t_numpy):.6f} lines/sec")
+    print(f"        {np.mean(t_numpy) / total_lines:.6f} secs/line")

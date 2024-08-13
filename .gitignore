@@ -161,5 +161,4 @@ cython_debug/
 
 # Data directory
 data/*
-!data/README.md
 .DS_Store

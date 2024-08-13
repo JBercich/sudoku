@@ -9,9 +9,6 @@ import numpy as np
 
 
 class DataLoader:
-    _CELL_ENCODING: tuple[str, str] = (".", "0")
-    _LINE_SKIP_CHR: tuple[str, ...] = ("#",)
-
     @classmethod
     def check_puzzle_skip_chr(cls, puzzle: str) -> bool:
         """Check puzzle can be skipped with skip character."""
@@ -27,7 +24,7 @@ class DataLoader:
     @classmethod
     def serialize_puzzle(cls, puzzle: str) -> str:
         """Coerce puzzle string into required format."""
-        return puzzle.strip().replace(*cls._CELL_ENCODING)
+        return puzzle.strip()
 
     @classmethod
     def load_file_to_native(cls, fp: TextIOWrapper) -> Generator[list[int], None, None]:
@@ -45,9 +42,25 @@ class DataLoader:
             puzzle: str = cls.serialize_puzzle(puzzle_line)
             if not cls.check_puzzle_length(puzzle):
                 raise ValueError(f"Puzzle has invalid length: {len(puzzle)}")
-            yield np.ndarray([int(cell) for cell in puzzle], dtype=np.uint8)
+            yield np.asarray([int(cell) for cell in puzzle], dtype=np.uint8)
 
 
-loader = DataLoader.load_file_to_native(open("./data/puzzles0_kaggle"))
-for i in range(10):
-    print(loader.__next__())
+if __name__ == "__main__":
+    import sys
+    import timeit
+
+    target_file: str = "data/puzzles0" if len(sys.argv) == 1 else sys.argv[1]
+    total_lines: int = np.sum([1 for _ in open(target_file).readlines()])
+
+    def exhaust_native_loader(filepath: str = target_file):
+        [_ for _ in DataLoader.load_file_to_native(open(filepath))]
+
+    def exhaust_numpy_loader(filepath: str = target_file):
+        [_ for _ in DataLoader.load_file_to_numpy(open(filepath))]
+
+    t_native: float = timeit.timeit(number=10, stmt=exhaust_native_loader)
+    t_numpy: float = timeit.timeit(number=10, stmt=exhaust_numpy_loader)
+    print(f"native: {total_lines / np.mean(t_native):.6f} line/sec")
+    print(f"        {np.mean(t_native) / total_lines:.6f} sec/line")
+    print(f" numpy: {total_lines / np.mean(t_numpy):.6f} line/sec")
+    print(f"        {np.mean(t_numpy) / total_lines:.6f} sec/line")

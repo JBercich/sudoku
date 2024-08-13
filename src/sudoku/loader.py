@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-import math
 from typing import Generator
 from io import TextIOWrapper
+import math
 
 import numpy as np
 
@@ -45,23 +45,39 @@ class DataLoader:
             yield np.asarray([int(cell) for cell in puzzle], dtype=np.uint8)
 
 
-if __name__ == "__main__":
-    import sys
+def run_profile() -> None:
+    """Container method for poetry scripting."""
+    from argparse import ArgumentParser, FileType, Namespace
     import timeit
 
-    target_file: str = "data/puzzles7" if len(sys.argv) == 1 else sys.argv[1]
-    total_lines: int = np.sum([1 for _ in open(target_file).readlines()])
+    parser: ArgumentParser = ArgumentParser(description="profile loaders")
+    parser.add_argument("-f", required=True, type=FileType(), help="puzzle filepath")
+    parser.add_argument("-o", default=False, type=bool, help="output csv profile")
+    args: Namespace = parser.parse_args()
 
-    def exhaust_native_loader(filepath: str = target_file):
-        [_ for _ in DataLoader.load_file_to_native(open(filepath))]
+    repeats: int = 20
+    num_lines: int = np.sum([1 for _ in open(args.f.name).readlines()])
 
-    def exhaust_numpy_loader(filepath: str = target_file):
-        [_ for _ in DataLoader.load_file_to_numpy(open(filepath))]
+    def exhaust_native_loader(parser: ArgumentParser = parser) -> None:
+        [_ for _ in DataLoader.load_file_to_native(parser.parse_args().f)]
 
-    print(f"  file: {target_file} has {total_lines} lines")
-    t_native: list = timeit.repeat(number=1, repeat=10, stmt=exhaust_native_loader)
-    print(f"native: {total_lines / np.mean(t_native):.6f} lines/sec")
-    print(f"        {np.mean(t_native) / total_lines:.6f} secs/line")
-    t_numpy: list = timeit.repeat(number=1, repeat=10, stmt=exhaust_numpy_loader)
-    print(f" numpy: {total_lines / np.mean(t_numpy):.6f} lines/sec")
-    print(f"        {np.mean(t_numpy) / total_lines:.6f} secs/line")
+    def exhaust_numpy_loader(parser: ArgumentParser = parser) -> None:
+        [_ for _ in DataLoader.load_file_to_numpy(parser.parse_args().f)]
+
+    print(f"  file: {parser.parse_args().f.name} has {num_lines} lines")
+    t_native: list = timeit.repeat(number=1, repeat=repeats, stmt=exhaust_native_loader)
+    print(f"native: {num_lines / np.mean(t_native):.6f} lines/sec")
+    print(f"        {np.mean(t_native) / num_lines:.6f} secs/line")
+    t_numpy: list = timeit.repeat(number=1, repeat=repeats, stmt=exhaust_numpy_loader)
+    print(f" numpy: {num_lines / np.mean(t_numpy):.6f} lines/sec")
+    print(f"        {np.mean(t_numpy) / num_lines:.6f} secs/line")
+
+    if args.o:
+        with open("profile_loader.csv", "w") as fp:
+            fp.write("native_loader,numpy_loader\n")
+            for i in range(1, repeats):
+                fp.write(f"{t_native[i] / num_lines:.9f},{t_numpy[i] / num_lines:.9f}\n")
+
+
+if __name__ == "__main__":
+    run_profile()

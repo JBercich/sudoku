@@ -5,6 +5,9 @@ description = ""
 authors = ["JBercich <joshbercich@gmail.com>"]
 readme = "README.md"
 
+[tool.poetry.scripts]
+profile-loaders = "sudoku.loader:run_profile"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 pytest = "^7.4.3"

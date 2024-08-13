@@ -49,7 +49,7 @@ if __name__ == "__main__":
     import sys
     import timeit
 
-    target_file: str = "data/puzzles0" if len(sys.argv) == 1 else sys.argv[1]
+    target_file: str = "data/puzzles7" if len(sys.argv) == 1 else sys.argv[1]
     total_lines: int = np.sum([1 for _ in open(target_file).readlines()])
 
     def exhaust_native_loader(filepath: str = target_file):
@@ -59,9 +59,9 @@ if __name__ == "__main__":
         [_ for _ in DataLoader.load_file_to_numpy(open(filepath))]
 
     print(f"  file: {target_file} has {total_lines} lines")
-    t_native: float = timeit.timeit(number=10, stmt=exhaust_native_loader)
+    t_native: list = timeit.repeat(number=1, repeat=10, stmt=exhaust_native_loader)
     print(f"native: {total_lines / np.mean(t_native):.6f} lines/sec")
     print(f"        {np.mean(t_native) / total_lines:.6f} secs/line")
-    t_numpy: float = timeit.timeit(number=10, stmt=exhaust_numpy_loader)
+    t_numpy: list = timeit.repeat(number=1, repeat=10, stmt=exhaust_numpy_loader)
     print(f" numpy: {total_lines / np.mean(t_numpy):.6f} lines/sec")
     print(f"        {np.mean(t_numpy) / total_lines:.6f} secs/line")

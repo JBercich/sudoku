@@ -5,14 +5,15 @@ description = ""
 authors = ["JBercich <joshbercich@gmail.com>"]
 readme = "README.md"
 
+[tool.poetry.scripts]
+profile-loaders = "sudoku.loader:run_profile"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 pytest = "^7.4.3"
 numpy = "^1.26.4"
-textual = "^0.76.0"
 seaborn = "^0.13.2"
 pandas = "^2.2.2"
-tqdm = "^4.66.5"
 
 [build-system]
 requires = ["poetry-core"]

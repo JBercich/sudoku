@@ -160,6 +160,5 @@ cython_debug/
 #.idea/
 
 # Data directory
-data/*
-!data/README.md
+data/
 .DS_Store

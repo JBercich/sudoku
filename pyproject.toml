@@ -12,6 +12,7 @@ numpy = "^1.26.4"
 textual = "^0.76.0"
 seaborn = "^0.13.2"
 pandas = "^2.2.2"
+tqdm = "^4.66.5"
 
 [build-system]
 requires = ["poetry-core"]

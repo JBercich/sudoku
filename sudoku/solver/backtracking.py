@@ -10,6 +10,7 @@ class BackTrackingSolver(Solver):
     def setup(self, *args, **kwargs) -> bool:
         super().setup(*args, **kwargs)
         self.search_space: np.ndarray = self._setup_search_space()
+        self._reduce_search_space()
         self.search_order: np.ndarray = self._setup_search_order()
         return False
 
@@ -31,6 +32,20 @@ class BackTrackingSolver(Solver):
             _sorted: np.ndarray = np.argsort(search_counts, axis=None, kind="mergesort")
             return search_space.reshape((search_counts.size, 2))[_sorted]
         return search_space.reshape((search_counts.size, 2))
+
+    def _reduce_search_space(self) -> np.ndarray:
+        for idx in range(self.sudoku.grid_size):
+            row: np.ndarray = np.unique(self.sudoku.get_row_by_idx(idx))
+            col: np.ndarray = np.unique(self.sudoku.get_col_by_idx(idx))
+            box: np.ndarray = np.unique(self.sudoku.get_box_by_num(idx).reshape(-1))
+            d: int = self.sudoku.box_size
+            i: int = idx // d * d
+            j: int = idx % d * d
+            self.search_space[idx, :, row] = False
+            self.search_space[:, idx, col] = False
+            self.search_space[i : i + d, j : j + d, box] = False
+
+        return self.search_space
 
     def _backtrack(self, idx: int = 0) -> bool:
         # Base condition reaching beyond sudoku cell space

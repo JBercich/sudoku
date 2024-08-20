@@ -1,9 +1,32 @@
-# #!/usr/bin/env python3
-# # -*- coding:utf-8 -*-
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
 
-# import math
-# from typing import Any, TypeAlias
-# from enum import Enum, unique
+import abc
+import math
+from typing import Any
+
+
+class Puzzle(abc.ABC):
+    MISSING: int = 0
+
+    def __init__(self, puzzle: Any):
+        self.puzzle: Any = self._init_puzzle(puzzle)
+        self.frozen: Any = self._init_frozen(self.puzzle)
+        if not math.sqrt(num_cells := len(puzzle)).is_integer():
+            raise ValueError(f"Puzzle has invalid number of cells: {num_cells}")
+        self.pzl_dim: int = int(num_cells)  # Puzzle edge
+        self.box_dim: int = int(math.sqrt(self.pzl_dim))  # Box edge
+
+    @classmethod
+    @abc.abstractmethod
+    def _init_puzzle(cls, puzzle: Any) -> Any:
+        pass
+
+    @classmethod
+    @abc.abstractmethod
+    def _init_frozen(cls, puzzle: Any) -> Any:
+        pass
+
 
 # import itertools
 
@@ -34,32 +57,6 @@
 #         itertools.chain(*[itertools.repeat(x, cell_dim) for x in range(cell_dim)])
 #     )
 
-
-# print(_generate_box_idxs(3))
-
-
-# # print(list(itertools.repeat(list(range(puzzle_size)), 2)))
-
-
-# # PuzzleArray: TypeAlias = list[int] | np.ndarray
-
-
-# # @unique
-# # class _SizeMapping(Enum, tuple[int, int, int]):
-
-
-# # class Puzzle:
-# #     MISSING: int = 0
-# #     MIN_DIM: int = 1
-# #     MIN_LEN: int = 1
-# #     MAX_DIM: int = 5
-# #     MAX_LEN: int = 625
-
-# #     def __init__(self, puzzle: Any):
-# #         self.values: GridArray = self._init_values(grid)
-# #         self.frozen: GridArray = self._init_frozen(self.values)
-# #         self.dim_sq: int = self._init_dim_sq(self.values)
-# #         self.dim_bx: int = int(self.dim_sq**2)
 
 # #     def __str__(self) -> str:
 # #         s = ""

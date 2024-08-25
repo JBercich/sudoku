@@ -4,6 +4,10 @@ version = "0.1.0"
 description = ""
 authors = ["JBercich <joshbercich@gmail.com>"]
 readme = "README.md"
+packages = [
+    {include = "src/rsdoku",  to = "rsdoku"},
+    {include = "src/pydoku",  to = "pydoku"},
+]
 
 [tool.poetry.scripts]
 profile-loaders = "sudoku.loader:run_profile"

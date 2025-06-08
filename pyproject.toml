@@ -1,36 +1,7 @@
-[tool.poetry]
+[project]
 name = "sudoku"
 version = "0.1.0"
-description = ""
-authors = ["JBercich <joshbercich@gmail.com>"]
+description = "Add your description here"
 readme = "README.md"
-packages = [
-    {include = "src/rsdoku",  to = "rsdoku"},
-    {include = "src/pydoku",  to = "pydoku"},
-]
-
-[tool.poetry.scripts]
-profile-loaders = "sudoku.loader:run_profile"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-pytest = "^7.4.3"
-numpy = "^1.26.4"
-seaborn = "^0.13.2"
-pandas = "^2.2.2"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.mypy]
-no_implicit_optional = false
-
-[tool.ruff]
-line-length = 89
-indent-width = 4
-target-version = "py311"
-extend-include = ["*.ipynb"]
-
-[tool.ruff.format]
-docstring-code-format = true
+requires-python = "==3.13.0"
+dependencies = []
